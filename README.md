@@ -38,4 +38,3 @@ Permite gestionar estudiantes, docentes, materias, calificaciones, asistencia, c
 - **Base de datos:** MySQL
 - **Servidor local recomendado:** XAMPP / Laragon
 
----
