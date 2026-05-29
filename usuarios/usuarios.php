@@ -1,5 +1,12 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 include(__DIR__ . "/../conexion/conexion.php");
+
+$mensaje = "";
+$tipoMensaje = "";
 
 // ==========================================
 // AJAX - CARGAR USUARIOS SEGÚN EL ROL
@@ -129,7 +136,6 @@ if (
 
         // ==========================================
         // GENERAR CONTRASEÑA
-        // 2000-05-19 => 19052000
         // ==========================================
 
         $partes = explode("-", $fecha_nacimiento);
@@ -139,7 +145,6 @@ if (
             $partes[1] .
             $partes[0];
 
-        // GUARDAR CONTRASEÑA NORMAL
         $contraseña_guardar = $contraseña;
 
         // ==========================================
@@ -186,11 +191,11 @@ if (
 
         if ($resultado->num_rows > 0) {
 
-            echo "
-            <script>
-                alert('⚠️ Ya existe un usuario con ese correo');
-            </script>
-            ";
+            $mensaje =
+                "Ya existe un usuario con ese correo.";
+
+            $tipoMensaje =
+                "warning";
 
         } else {
 
@@ -219,30 +224,29 @@ if (
 
             if ($stmt->execute()) {
 
-                echo "
-                <script>
-                    alert('✅ Usuario registrado correctamente');
-                    alert('🔑 Contraseña generada: $contraseña');
-                </script>
-                ";
+                $mensaje =
+                    "Usuario registrado correctamente. Contraseña generada: $contraseña";
+
+                $tipoMensaje =
+                    "success";
 
             } else {
 
-                echo "
-                <script>
-                    alert('❌ Error al guardar usuario');
-                </script>
-                ";
+                $mensaje =
+                    "Error al guardar usuario.";
+
+                $tipoMensaje =
+                    "danger";
             }
         }
 
     } else {
 
-        echo "
-        <script>
-            alert('⚠️ Usuario no encontrado');
-        </script>
-        ";
+        $mensaje =
+            "Usuario no encontrado.";
+
+        $tipoMensaje =
+            "warning";
     }
 }
 
@@ -265,15 +269,47 @@ $usuarios = $conn->query("
 <div class="container mt-4">
 
     <h3 class="mb-4 text-primary">
+        <i class="bi bi-people-fill"></i>
         Gestión de Usuarios
     </h3>
 
-    <!-- REGISTRAR -->
-    <div class="card shadow-sm p-4 mb-4">
+    <!-- ALERTAS -->
+    <?php if (!empty($mensaje)) { ?>
 
-        <h4 class="text-center mb-4">
+        <div class="alert alert-<?php echo $tipoMensaje; ?> alert-dismissible fade show shadow-sm border-0 rounded-4 mb-4"
+             role="alert">
+
+            <div class="d-flex align-items-center">
+
+                <i class="bi 
+                    <?php
+                        if($tipoMensaje == 'success') echo 'bi-check-circle-fill';
+                        elseif($tipoMensaje == 'warning') echo 'bi-exclamation-triangle-fill';
+                        elseif($tipoMensaje == 'danger') echo 'bi-trash-fill';
+                        else echo 'bi-info-circle-fill';
+                    ?>
+                    me-2 fs-5">
+                </i>
+
+                <strong><?php echo $mensaje; ?></strong>
+
+            </div>
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+
+    <?php } ?>
+
+    <!-- FORMULARIO -->
+    <div class="card shadow-sm border-0 rounded-4 p-4 mb-4">
+
+        <h5 class="mb-4">
             Registrar nuevo usuario
-        </h4>
+        </h5>
 
         <form method="POST" class="row g-3">
 
@@ -282,15 +318,15 @@ $usuarios = $conn->query("
                    value="guardar">
 
             <!-- ROL -->
-            <div class="col-md-4">
+            <div class="col-md-6">
 
-                <label class="form-label fw-bold">
+                <label class="form-label fw-semibold">
                     Rol
                 </label>
 
                 <select name="rol"
                         id="rol"
-                        class="form-select"
+                        class="form-select rounded-3"
                         required
                         onchange="cargarUsuarios(this.value)">
 
@@ -315,15 +351,15 @@ $usuarios = $conn->query("
             </div>
 
             <!-- USUARIO -->
-            <div class="col-md-4">
+            <div class="col-md-6">
 
-                <label class="form-label fw-bold">
+                <label class="form-label fw-semibold">
                     Nombre y Apellido
                 </label>
 
                 <select name="usuario_id"
                         id="usuario_id"
-                        class="form-select"
+                        class="form-select rounded-3"
                         required>
 
                     <option value="">
@@ -335,11 +371,12 @@ $usuarios = $conn->query("
             </div>
 
             <!-- BOTÓN -->
-            <div class="col-md-4 d-flex align-items-end">
+            <div class="col-12 text-end">
 
                 <button type="submit"
-                        class="btn btn-success w-100">
+                        class="btn btn-primary rounded-3 px-4">
 
+                    <i class="bi bi-save"></i>
                     Guardar usuario
 
                 </button>
@@ -351,56 +388,61 @@ $usuarios = $conn->query("
     </div>
 
     <!-- TABLA -->
-    <div class="card shadow-sm p-4">
+    <div class="card shadow-sm border-0 rounded-4 p-4">
 
-        <h4 class="text-center mb-4">
+        <h5 class="mb-4">
             Usuarios registrados
-        </h4>
+        </h5>
 
-        <table class="table table-striped table-hover">
+        <div class="table-responsive">
 
-            <thead class="table-dark">
+            <table class="table table-hover align-middle">
 
-                <tr>
-
-                    <th>Nombre</th>
-                    <th>Correo</th>
-                    <th>Rol</th>
-
-                </tr>
-
-            </thead>
-
-            <tbody>
-
-                <?php while($row = $usuarios->fetch_assoc()) { ?>
+                <thead class="table-dark">
 
                     <tr>
 
-                        <td>
-                            <?php echo htmlspecialchars($row['nombre']); ?>
-                        </td>
-
-                        <td>
-                            <?php echo htmlspecialchars($row['correo']); ?>
-                        </td>
-
-                        <td>
-                            <?php echo htmlspecialchars($row['rol']); ?>
-                        </td>
+                        <th>Nombre</th>
+                        <th>Correo</th>
+                        <th>Rol</th>
 
                     </tr>
 
-                <?php } ?>
+                </thead>
 
-            </tbody>
+                <tbody>
 
-        </table>
+                    <?php while($row = $usuarios->fetch_assoc()) { ?>
+
+                        <tr>
+
+                            <td>
+                                <?php echo htmlspecialchars($row['nombre']); ?>
+                            </td>
+
+                            <td>
+                                <?php echo htmlspecialchars($row['correo']); ?>
+                            </td>
+
+                            <td>
+                                <?php echo htmlspecialchars($row['rol']); ?>
+                            </td>
+
+                        </tr>
+
+                    <?php } ?>
+
+                </tbody>
+
+            </table>
+
+        </div>
 
     </div>
 
 </div>
 
+<!-- SCRIPT AJAX -->
 <script>
 
 function cargarUsuarios(rol) {
@@ -442,3 +484,6 @@ function cargarUsuarios(rol) {
 }
 
 </script>
+
+<!-- Bootstrap -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

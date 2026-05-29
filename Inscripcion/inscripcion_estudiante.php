@@ -1,6 +1,9 @@
 <?php
 include(__DIR__ . "/../conexion/conexion.php");
 
+$mensaje = "";
+$tipo_mensaje = "";
+
 // =========================
 // GUARDAR ESTUDIANTE
 // =========================
@@ -27,7 +30,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['
 
     if ($result['total'] > 0) {
 
-        echo "<script>alert('⚠️ Ya existe un estudiante con esa cédula');</script>";
+        $mensaje = "⚠️ Ya existe un estudiante con esa cédula";
+        $tipo_mensaje = "warning";
 
     } else {
 
@@ -66,11 +70,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['
 
         if ($stmt->execute()) {
 
-            echo "<script>alert('✅ Estudiante inscrito correctamente');</script>";
+            $mensaje = "✅ Estudiante inscrito correctamente";
+            $tipo_mensaje = "success";
 
         } else {
 
-            echo "<script>alert('❌ Error: ".$stmt->error."');</script>";
+            $mensaje = "❌ Error: " . $stmt->error;
+            $tipo_mensaje = "danger";
         }
     }
 }
@@ -103,7 +109,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['
 
     if ($result['total'] > 0) {
 
-        echo "<script>alert('⚠️ Ya existe otro estudiante con esa cédula');</script>";
+        $mensaje = "⚠️ Ya existe otro estudiante con esa cédula";
+        $tipo_mensaje = "warning";
 
     } else {
 
@@ -141,11 +148,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['
 
         if ($stmt->execute()) {
 
-            echo "<script>alert('✅ Estudiante actualizado correctamente');</script>";
+            $mensaje = "✅ Estudiante actualizado correctamente";
+            $tipo_mensaje = "success";
 
         } else {
 
-            echo "<script>alert('❌ Error al actualizar: ".$stmt->error."');</script>";
+            $mensaje = "❌ Error al actualizar: " . $stmt->error;
+            $tipo_mensaje = "danger";
         }
     }
 }
@@ -159,10 +168,17 @@ if (isset($_GET['eliminar'])) {
 
     $stmt = $conn->prepare("DELETE FROM estudiantes WHERE id=?");
     $stmt->bind_param("i", $id);
-    $stmt->execute();
 
-    header("Location: ../principal.php?seccion=inscripcion_estudiante");
-    exit();
+    if ($stmt->execute()) {
+
+        $mensaje = "🗑️ Estudiante eliminado correctamente";
+        $tipo_mensaje = "danger";
+
+    } else {
+
+        $mensaje = "❌ Error al eliminar estudiante";
+        $tipo_mensaje = "danger";
+    }
 }
 
 // =========================
@@ -209,67 +225,93 @@ $estudiantes = $conn->query("
 
 <div class="container mt-4">
 
-    <h3 class="mb-4 text-primary">
+    <h3 class="mb-4 text-primary fw-bold">
         <i class="bi bi-person-plus"></i>
         Inscripción de Estudiantes
     </h3>
 
+    <!-- ALERTAS -->
+    <?php if (!empty($mensaje)) { ?>
+
+        <div class="alert alert-<?php echo $tipo_mensaje; ?> alert-dismissible fade show border-0 shadow rounded-4 d-flex align-items-center gap-3 p-3 mb-4">
+
+            <i class="bi bi-bell-fill fs-4"></i>
+
+            <div class="fw-semibold">
+                <?php echo $mensaje; ?>
+            </div>
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+
+    <?php } ?>
+
     <!-- FORMULARIO -->
-    <div class="card shadow-sm p-4 mb-4">
+    <div class="card border-0 shadow-lg rounded-4 p-4 mb-4">
+
+        <h5 class="mb-4 fw-semibold">
+            <i class="bi bi-person-lines-fill"></i>
+            Registrar Nuevo Estudiante
+        </h5>
 
         <form method="POST" class="row g-3">
 
             <input type="hidden" name="accion" value="guardar">
 
             <div class="col-md-6">
-                <label class="form-label">Nombre</label>
-                <input type="text" name="nombre" class="form-control" required>
+                <label class="form-label fw-semibold">Nombre</label>
+                <input type="text" name="nombre" class="form-control rounded-3" required>
             </div>
 
             <div class="col-md-6">
-                <label class="form-label">Apellido</label>
-                <input type="text" name="apellido" class="form-control" required>
+                <label class="form-label fw-semibold">Apellido</label>
+                <input type="text" name="apellido" class="form-control rounded-3" required>
             </div>
 
             <div class="col-md-4">
-                <label class="form-label">ID</label>
-                <input type="text" name="cedula" class="form-control" required>
+                <label class="form-label fw-semibold">Cédula</label>
+                <input type="text" name="cedula" class="form-control rounded-3" required>
             </div>
 
             <div class="col-md-4">
-                <label class="form-label">Correo</label>
-                <input type="email" name="correo" class="form-control" required>
+                <label class="form-label fw-semibold">Correo</label>
+                <input type="email" name="correo" class="form-control rounded-3" required>
             </div>
 
             <div class="col-md-4">
-                <label class="form-label">Fecha nacimiento</label>
-                <input type="date" name="fecha_nacimiento" class="form-control" required>
+                <label class="form-label fw-semibold">Fecha nacimiento</label>
+                <input type="date" name="fecha_nacimiento" class="form-control rounded-3" required>
             </div>
 
-            <div class="col-md-12">
-                <label class="form-label">Dirección</label>
-                <input type="text" name="direccion" class="form-control">
+            <div class="col-12">
+                <label class="form-label fw-semibold">Dirección</label>
+                <input type="text" name="direccion" class="form-control rounded-3">
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Teléfono</label>
+                <input type="text" name="telefono" class="form-control rounded-3">
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Padre</label>
+                <input type="text" name="padre" class="form-control rounded-3">
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Madre</label>
+                <input type="text" name="madre" class="form-control rounded-3">
             </div>
 
             <div class="col-md-6">
-                <label class="form-label">Teléfono</label>
-                <input type="text" name="telefono" class="form-control">
-            </div>
 
-            <div class="col-md-6">
-                <label class="form-label">Padre</label>
-                <input type="text" name="padre" class="form-control">
-            </div>
+                <label class="form-label fw-semibold">Grado</label>
 
-            <div class="col-md-6">
-                <label class="form-label">Madre</label>
-                <input type="text" name="madre" class="form-control">
-            </div>
-
-            <div class="col-md-3">
-                <label class="form-label">Grado</label>
-
-                <select name="grado" class="form-select" required>
+                <select name="grado" class="form-select rounded-3" required>
 
                     <option value="">Seleccione</option>
 
@@ -286,12 +328,14 @@ $estudiantes = $conn->query("
                     <?php } ?>
 
                 </select>
+
             </div>
 
-            <div class="col-md-3">
-                <label class="form-label">Nivel</label>
+            <div class="col-md-6">
 
-                <select name="nivel" class="form-select" required>
+                <label class="form-label fw-semibold">Nivel</label>
+
+                <select name="nivel" class="form-select rounded-3" required>
 
                     <option value="">Seleccione</option>
 
@@ -306,13 +350,17 @@ $estudiantes = $conn->query("
                     <?php } ?>
 
                 </select>
+
             </div>
 
-            <div class="col-12 text-end">
+            <div class="col-12 text-end mt-4">
 
-                <button type="submit" class="btn btn-success">
+                <button type="submit"
+                        class="btn btn-success rounded-3 px-4 py-2">
+
                     <i class="bi bi-save"></i>
                     Guardar inscripción
+
                 </button>
 
             </div>
@@ -322,36 +370,43 @@ $estudiantes = $conn->query("
     </div>
 
     <!-- TABLA -->
-    <div class="card shadow-sm p-4">
+    <div class="card border-0 shadow-lg rounded-4 p-4">
 
-        <h5 class="mb-3">Estudiantes inscritos</h5>
+        <h5 class="mb-3 fw-semibold">
+            <i class="bi bi-people-fill"></i>
+            Estudiantes inscritos
+        </h5>
 
-        <table class="table table-bordered table-hover align-middle">
+        <div class="table-responsive">
 
-            <thead class="table-dark">
+            <table class="table table-hover align-middle">
 
-                <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Apellido</th>
-                    <th>ID</th>
-                    <th>Correo</th>
-                    <th>Grado</th>
-                    <th>Nivel</th>
-                    <th class="text-center">Acciones</th>
-                </tr>
+                <thead class="table-dark">
 
-            </thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Apellido</th>
+                        <th>Cédula</th>
+                        <th>Correo</th>
+                        <th>Grado</th>
+                        <th>Nivel</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
 
-            <tbody>
+                </thead>
 
-                <?php while($row = $estudiantes->fetch_assoc()) { ?>
+                <tbody>
+
+                    <?php while($row = $estudiantes->fetch_assoc()) { ?>
 
                     <tr>
 
                         <td><?php echo $row['id']; ?></td>
 
-                        <td><?php echo htmlspecialchars($row['nombre']); ?></td>
+                        <td class="fw-semibold">
+                            <?php echo htmlspecialchars($row['nombre']); ?>
+                        </td>
 
                         <td><?php echo htmlspecialchars($row['apellido']); ?></td>
 
@@ -359,15 +414,23 @@ $estudiantes = $conn->query("
 
                         <td><?php echo htmlspecialchars($row['correo']); ?></td>
 
-                        <td><?php echo htmlspecialchars($row['grado']); ?></td>
+                        <td>
+                            <span class="badge bg-primary rounded-pill px-3 py-2">
+                                <?php echo htmlspecialchars($row['grado']); ?>
+                            </span>
+                        </td>
 
-                        <td><?php echo htmlspecialchars($row['nivel']); ?></td>
+                        <td>
+                            <span class="badge bg-dark rounded-pill px-3 py-2">
+                                <?php echo htmlspecialchars($row['nivel']); ?>
+                            </span>
+                        </td>
 
                         <td class="text-center">
 
-                            <!-- BOTON EDITAR -->
+                            <!-- EDITAR -->
                             <button type="button"
-                                    class="btn btn-warning btn-sm"
+                                    class="btn btn-outline-primary btn-sm rounded-3"
                                     data-bs-toggle="modal"
                                     data-bs-target="#editarModal<?php echo $row['id']; ?>">
 
@@ -376,9 +439,9 @@ $estudiantes = $conn->query("
 
                             </button>
 
-                            <!-- BOTON ELIMINAR -->
+                            <!-- ELIMINAR -->
                             <a href="Inscripcion/inscripcion_estudiante.php?eliminar=<?php echo $row['id']; ?>"
-                               class="btn btn-danger btn-sm"
+                               class="btn btn-outline-danger btn-sm rounded-3"
                                onclick="return confirm('¿Seguro que deseas eliminar este estudiante?')">
 
                                 <i class="bi bi-trash"></i>
@@ -396,25 +459,28 @@ $estudiantes = $conn->query("
                          tabindex="-1"
                          aria-hidden="true">
 
-                        <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
 
-                            <div class="modal-content">
+                            <div class="modal-content border-0 rounded-4 shadow-lg">
+
+                                <!-- HEADER -->
+                                <div class="modal-header bg-dark text-white rounded-top-4">
+
+                                    <h5 class="modal-title">
+                                        <i class="bi bi-pencil-square"></i>
+                                        Editar Estudiante
+                                    </h5>
+
+                                    <button type="button"
+                                            class="btn-close btn-close-white"
+                                            data-bs-dismiss="modal">
+                                    </button>
+
+                                </div>
 
                                 <form method="POST">
 
-                                    <div class="modal-header bg-primary text-white">
-
-                                        <h5 class="modal-title">
-                                            Editar Estudiante
-                                        </h5>
-
-                                        <button type="button"
-                                                class="btn-close"
-                                                data-bs-dismiss="modal"></button>
-
-                                    </div>
-
-                                    <div class="modal-body">
+                                    <div class="modal-body p-4">
 
                                         <input type="hidden"
                                                name="accion"
@@ -424,178 +490,184 @@ $estudiantes = $conn->query("
                                                name="id"
                                                value="<?php echo $row['id']; ?>">
 
-                                        <div class="mb-3">
-                                            <label class="form-label">Nombre</label>
+                                        <div class="row g-3">
 
-                                            <input type="text"
-                                                   name="nombre"
-                                                   class="form-control"
-                                                   value="<?php echo htmlspecialchars($row['nombre']); ?>"
-                                                   required>
-                                        </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-semibold">Nombre</label>
 
-                                        <div class="mb-3">
-                                            <label class="form-label">Apellido</label>
+                                                <input type="text"
+                                                       name="nombre"
+                                                       class="form-control rounded-3"
+                                                       value="<?php echo htmlspecialchars($row['nombre']); ?>"
+                                                       required>
+                                            </div>
 
-                                            <input type="text"
-                                                   name="apellido"
-                                                   class="form-control"
-                                                   value="<?php echo htmlspecialchars($row['apellido']); ?>"
-                                                   required>
-                                        </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-semibold">Apellido</label>
 
-                                        <div class="mb-3">
-                                            <label class="form-label">Cédula</label>
+                                                <input type="text"
+                                                       name="apellido"
+                                                       class="form-control rounded-3"
+                                                       value="<?php echo htmlspecialchars($row['apellido']); ?>"
+                                                       required>
+                                            </div>
 
-                                            <input type="text"
-                                                   name="cedula"
-                                                   class="form-control"
-                                                   value="<?php echo htmlspecialchars($row['cedula']); ?>"
-                                                   required>
-                                        </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label fw-semibold">Cédula</label>
 
-                                        <div class="mb-3">
-                                            <label class="form-label">Correo</label>
+                                                <input type="text"
+                                                       name="cedula"
+                                                       class="form-control rounded-3"
+                                                       value="<?php echo htmlspecialchars($row['cedula']); ?>"
+                                                       required>
+                                            </div>
 
-                                            <input type="email"
-                                                   name="correo"
-                                                   class="form-control"
-                                                   value="<?php echo htmlspecialchars($row['correo']); ?>"
-                                                   required>
-                                        </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label fw-semibold">Correo</label>
 
-                                        <div class="mb-3">
-                                            <label class="form-label">Fecha nacimiento</label>
+                                                <input type="email"
+                                                       name="correo"
+                                                       class="form-control rounded-3"
+                                                       value="<?php echo htmlspecialchars($row['correo']); ?>"
+                                                       required>
+                                            </div>
 
-                                            <input type="date"
-                                                   name="fecha_nacimiento"
-                                                   class="form-control"
-                                                   value="<?php echo $row['fecha_nacimiento']; ?>">
-                                        </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label fw-semibold">Fecha nacimiento</label>
 
-                                        <div class="mb-3">
-                                            <label class="form-label">Dirección</label>
+                                                <input type="date"
+                                                       name="fecha_nacimiento"
+                                                       class="form-control rounded-3"
+                                                       value="<?php echo $row['fecha_nacimiento']; ?>">
+                                            </div>
 
-                                            <input type="text"
-                                                   name="direccion"
-                                                   class="form-control"
-                                                   value="<?php echo htmlspecialchars($row['direccion']); ?>">
-                                        </div>
+                                            <div class="col-12">
+                                                <label class="form-label fw-semibold">Dirección</label>
 
-                                        <div class="mb-3">
-                                            <label class="form-label">Teléfono</label>
+                                                <input type="text"
+                                                       name="direccion"
+                                                       class="form-control rounded-3"
+                                                       value="<?php echo htmlspecialchars($row['direccion']); ?>">
+                                            </div>
 
-                                            <input type="text"
-                                                   name="telefono"
-                                                   class="form-control"
-                                                   value="<?php echo htmlspecialchars($row['telefono']); ?>">
-                                        </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label fw-semibold">Teléfono</label>
 
-                                        <div class="mb-3">
-                                            <label class="form-label">Padre</label>
+                                                <input type="text"
+                                                       name="telefono"
+                                                       class="form-control rounded-3"
+                                                       value="<?php echo htmlspecialchars($row['telefono']); ?>">
+                                            </div>
 
-                                            <input type="text"
-                                                   name="padre"
-                                                   class="form-control"
-                                                   value="<?php echo htmlspecialchars($row['padre']); ?>">
-                                        </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label fw-semibold">Padre</label>
 
-                                        <div class="mb-3">
-                                            <label class="form-label">Madre</label>
+                                                <input type="text"
+                                                       name="padre"
+                                                       class="form-control rounded-3"
+                                                       value="<?php echo htmlspecialchars($row['padre']); ?>">
+                                            </div>
 
-                                            <input type="text"
-                                                   name="madre"
-                                                   class="form-control"
-                                                   value="<?php echo htmlspecialchars($row['madre']); ?>">
-                                        </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label fw-semibold">Madre</label>
 
-                                        <!-- GRADO -->
-                                        <div class="mb-3">
+                                                <input type="text"
+                                                       name="madre"
+                                                       class="form-control rounded-3"
+                                                       value="<?php echo htmlspecialchars($row['madre']); ?>">
+                                            </div>
 
-                                            <label class="form-label">Grado</label>
+                                            <!-- GRADO -->
+                                            <div class="col-md-6">
 
-                                            <select name="grado"
-                                                    class="form-select"
-                                                    required>
+                                                <label class="form-label fw-semibold">Grado</label>
 
-                                                <?php
-                                                $gradosEditar = $conn->query("
-                                                    SELECT
-                                                        g.id,
-                                                        g.nombre AS grado,
-                                                        s.nombre AS seccion
-                                                    FROM grados1 g
-                                                    INNER JOIN secciones s
-                                                    ON g.id_seccion = s.id
-                                                    ORDER BY g.nombre ASC
-                                                ");
+                                                <select name="grado"
+                                                        class="form-select rounded-3"
+                                                        required>
 
-                                                while($g2 = $gradosEditar->fetch_assoc()) {
+                                                    <?php
+                                                    $gradosEditar = $conn->query("
+                                                        SELECT
+                                                            g.id,
+                                                            g.nombre AS grado,
+                                                            s.nombre AS seccion
+                                                        FROM grados1 g
+                                                        INNER JOIN secciones s
+                                                        ON g.id_seccion = s.id
+                                                        ORDER BY g.nombre ASC
+                                                    ");
 
-                                                    $selected = ($g2['id'] == $row['grado_id'])
-                                                        ? 'selected'
-                                                        : '';
+                                                    while($g2 = $gradosEditar->fetch_assoc()) {
 
-                                                    echo "
-                                                    <option value='{$g2['id']}' $selected>
-                                                        {$g2['grado']} {$g2['seccion']}
-                                                    </option>";
-                                                }
-                                                ?>
+                                                        $selected = ($g2['id'] == $row['grado_id'])
+                                                            ? 'selected'
+                                                            : '';
 
-                                            </select>
+                                                        echo "
+                                                        <option value='{$g2['id']}' $selected>
+                                                            {$g2['grado']} {$g2['seccion']}
+                                                        </option>";
+                                                    }
+                                                    ?>
 
-                                        </div>
+                                                </select>
 
-                                        <!-- NIVEL -->
-                                        <div class="mb-3">
+                                            </div>
 
-                                            <label class="form-label">Nivel</label>
+                                            <!-- NIVEL -->
+                                            <div class="col-md-6">
 
-                                            <select name="nivel"
-                                                    class="form-select"
-                                                    required>
+                                                <label class="form-label fw-semibold">Nivel</label>
 
-                                                <?php
-                                                $nivelesEditar = $conn->query("
-                                                    SELECT *
-                                                    FROM niveles
-                                                    ORDER BY nombre ASC
-                                                ");
+                                                <select name="nivel"
+                                                        class="form-select rounded-3"
+                                                        required>
 
-                                                while($n2 = $nivelesEditar->fetch_assoc()) {
+                                                    <?php
+                                                    $nivelesEditar = $conn->query("
+                                                        SELECT *
+                                                        FROM niveles
+                                                        ORDER BY nombre ASC
+                                                    ");
 
-                                                    $selected = ($n2['id'] == $row['nivel_id'])
-                                                        ? 'selected'
-                                                        : '';
+                                                    while($n2 = $nivelesEditar->fetch_assoc()) {
 
-                                                    echo "
-                                                    <option value='{$n2['id']}' $selected>
-                                                        {$n2['nombre']}
-                                                    </option>";
-                                                }
-                                                ?>
+                                                        $selected = ($n2['id'] == $row['nivel_id'])
+                                                            ? 'selected'
+                                                            : '';
 
-                                            </select>
+                                                        echo "
+                                                        <option value='{$n2['id']}' $selected>
+                                                            {$n2['nombre']}
+                                                        </option>";
+                                                    }
+                                                    ?>
+
+                                                </select>
+
+                                            </div>
 
                                         </div>
 
                                     </div>
 
-                                    <div class="modal-footer">
-
-                                        <button type="submit"
-                                                class="btn btn-success">
-
-                                            Actualizar
-
-                                        </button>
+                                    <!-- FOOTER -->
+                                    <div class="modal-footer border-0 px-4 pb-4">
 
                                         <button type="button"
-                                                class="btn btn-secondary"
+                                                class="btn btn-light border rounded-3 px-4"
                                                 data-bs-dismiss="modal">
 
                                             Cancelar
+
+                                        </button>
+
+                                        <button type="submit"
+                                                class="btn btn-dark rounded-3 px-4">
+
+                                            <i class="bi bi-check-circle"></i>
+                                            Actualizar
 
                                         </button>
 
@@ -609,15 +681,35 @@ $estudiantes = $conn->query("
 
                     </div>
 
-                <?php } ?>
+                    <?php } ?>
 
-            </tbody>
+                </tbody>
 
-        </table>
+            </table>
+
+        </div>
 
     </div>
 
 </div>
 
-<!-- Bootstrap -->
+<!-- BOOTSTRAP -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- AUTO CERRAR ALERTAS -->
+<script>
+
+setTimeout(() => {
+
+    let alerta = document.querySelector('.alert');
+
+    if(alerta){
+
+        let bsAlert = new bootstrap.Alert(alerta);
+
+        bsAlert.close();
+    }
+
+}, 5000);
+
+</script>
