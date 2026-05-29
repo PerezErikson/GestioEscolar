@@ -59,7 +59,7 @@ $nombre = $_SESSION['nombre'];
             <a href="principal.php?seccion=secciones">🗂️ Secciones</a>
             <a href="principal.php?seccion=grados">🎓 Grados</a>
             <a href="principal.php?seccion=inscripcion_estudiante">📝 Inscripción Estudiante</a>
-            <a href="principal.php?seccion=inscripcion_profesor">📝 Inscripción Profesor</a>
+            <a href="principal.php?seccion=registrar_docente">📝 Registrar Docente</a>
             <a href="principal.php?seccion=materias">📖 Materias</a>
             <a href="principal.php?seccion=docentes">👨‍🏫 Docentes</a>
             <a href="principal.php?seccion=estudiantes">👩‍🎓 Estudiantes</a>
@@ -79,7 +79,6 @@ $nombre = $_SESSION['nombre'];
         <?php elseif ($rol == 3): ?>
             <a href="principal.php?seccion=calificaciones">📝 Calificaciones</a>
             <a href="principal.php?seccion=reporte_comportamiento">📊 Reporte de Comportamiento</a>
-
             <a href="principal.php?seccion=chat">💬 Chat</a>
         <?php endif; ?>
         <hr>
@@ -120,17 +119,16 @@ $nombre = $_SESSION['nombre'];
             elseif ($seccion === 'secciones' && $rol == 1) include("Secciones/secciones.php");
             elseif ($seccion === 'roles' && $rol == 1) include("Roles/roles.php");
             elseif ($seccion === 'usuarios' && $rol == 1) include("Usuarios/usuarios.php");
-            elseif ($seccion === 'docentes' && $rol == 1) include("Docentes/docentes.php");
+           elseif ($seccion === 'docentes' && $rol == 1) include("Docentes/docentes.php");
             elseif ($seccion === 'estudiantes' && $rol == 1) include("Estudiantes/estudiantes.php");
             elseif ($seccion === 'calificaciones') include("Calificaciones/calificaciones.php");
             elseif ($seccion === 'comportamiento') include("Comportamiento/comportamiento.php");
             elseif ($seccion === 'reporte_comportamiento') include("Comportamiento/reporte_comportamiento.php");
-
             elseif ($seccion === 'asistencia') include("Asistencia/asistencia.php");
             elseif ($seccion === 'reporte_asistencia') include("Reporte/reporte_asistencia.php");
             elseif ($seccion === 'chat') include("Chat/chat.php");
             elseif ($seccion === 'inscripcion_estudiante' && $rol == 1) include("Inscripcion/inscripcion_estudiante.php");
-            elseif ($seccion === 'inscripcion_profesor' && $rol == 1) include("Inscripcion/inscripcion_profesor.php");
+            elseif ($seccion === 'registrar_docente' && $rol == 1) include("Docentes/registrar_docente.php");
         }
         ?>
     </div>
