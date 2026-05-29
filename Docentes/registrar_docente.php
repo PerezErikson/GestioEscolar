@@ -1,11 +1,21 @@
 <?php
+
+// ==========================================
+// INICIAR SESIÓN
+// ==========================================
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// ==========================================
+// CONEXIÓN A LA BASE DE DATOS
+// ==========================================
 include("conexion/conexion.php");
 
-// Verificar si el usuario es administrador
+// ==========================================
+// VERIFICAR SI EL USUARIO ES ADMINISTRADOR
+// SOLO EL ADMIN PUEDE REGISTRAR DOCENTES
+// ==========================================
 if ($_SESSION['rol_id'] != 1) {
 
     echo "
@@ -31,6 +41,9 @@ if ($_SESSION['rol_id'] != 1) {
     exit();
 }
 
+// ==========================================
+// VARIABLES PARA MENSAJES
+// ==========================================
 $mensaje = "";
 $tipoMensaje = "";
 
@@ -39,6 +52,9 @@ $tipoMensaje = "";
 // ==========================================
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
+    // ==========================================
+    // OBTENER DATOS DEL FORMULARIO
+    // ==========================================
     $nombre             = trim($_POST['nombre']);
     $apellido           = trim($_POST['apellido']);
     $correo             = trim($_POST['correo']);
@@ -59,6 +75,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $edad = $hoy->diff($fecha_nac)->y;
 
+    // ==========================================
+    // SI ES MENOR DE 18 AÑOS
+    // ==========================================
     if ($edad < 18) {
 
         $mensaje =
@@ -70,7 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
 
         // ==========================================
-        // VERIFICAR CÉDULA
+        // VERIFICAR SI LA CÉDULA YA EXISTE
         // ==========================================
         $check = $conn->prepare("
             SELECT id
@@ -87,6 +106,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $check->store_result();
 
+        // ==========================================
+        // SI YA EXISTE ESA CÉDULA
+        // ==========================================
         if ($check->num_rows > 0) {
 
             $mensaje =
@@ -98,7 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
 
             // ==========================================
-            // VERIFICAR CORREO
+            // VERIFICAR SI EL CORREO YA EXISTE
             // ==========================================
             $correoCheck = $conn->prepare("
                 SELECT id
@@ -115,6 +137,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $correoCheck->store_result();
 
+            // ==========================================
+            // SI YA EXISTE ESE CORREO
+            // ==========================================
             if ($correoCheck->num_rows > 0) {
 
                 $mensaje =
@@ -126,7 +151,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
 
                 // ==========================================
-                // INSERTAR DOCENTE
+                // INSERTAR NUEVO DOCENTE
                 // ==========================================
                 $sql = "
                     INSERT INTO docente
@@ -164,6 +189,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $anos_servicio
                 );
 
+                // ==========================================
+                // EJECUTAR INSERT
+                // ==========================================
                 if ($stmt->execute()) {
 
                     $mensaje =
@@ -186,8 +214,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 
+<!-- ========================================== -->
+<!-- CONTENEDOR PRINCIPAL -->
+<!-- ========================================== -->
 <div class="container mt-4">
 
+    <!-- TÍTULO -->
     <h3 class="mb-4 text-primary">
 
         <i class="bi bi-person-badge-fill"></i>
@@ -196,7 +228,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     </h3>
 
+    <!-- ========================================== -->
     <!-- ALERTAS -->
+    <!-- ========================================== -->
     <?php if (!empty($mensaje)) { ?>
 
         <div class="alert alert-<?php echo $tipoMensaje; ?> alert-dismissible fade show shadow-sm border-0 rounded-4 mb-4"
@@ -231,7 +265,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <?php } ?>
 
+    <!-- ========================================== -->
     <!-- FORMULARIO -->
+    <!-- ========================================== -->
     <div class="card shadow-sm border-0 rounded-4 p-4">
 
         <h5 class="mb-4">
@@ -242,7 +278,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <form method="POST" class="row g-3">
 
+            <!-- ========================================== -->
             <!-- NOMBRE -->
+            <!-- ========================================== -->
             <div class="col-md-6">
 
                 <label class="form-label fw-semibold">
@@ -258,7 +296,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             </div>
 
+            <!-- ========================================== -->
             <!-- APELLIDO -->
+            <!-- ========================================== -->
             <div class="col-md-6">
 
                 <label class="form-label fw-semibold">
@@ -274,7 +314,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             </div>
 
+            <!-- ========================================== -->
             <!-- CORREO -->
+            <!-- ========================================== -->
             <div class="col-md-6">
 
                 <label class="form-label fw-semibold">
@@ -291,7 +333,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             </div>
 
+            <!-- ========================================== -->
             <!-- CÉDULA -->
+            <!-- FORMATO AUTOMÁTICO DOMINICANO -->
+            <!-- ========================================== -->
             <div class="col-md-6">
 
                 <label class="form-label fw-semibold">
@@ -302,12 +347,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 <input type="text"
                        name="cedula"
+                       id="cedula"
                        class="form-control rounded-3"
+                       placeholder="000-0000000-0"
+                       maxlength="13"
+                       inputmode="numeric"
                        required>
 
             </div>
 
+            <!-- ========================================== -->
             <!-- FECHA NACIMIENTO -->
+            <!-- ========================================== -->
             <div class="col-md-6">
 
                 <label class="form-label fw-semibold">
@@ -323,7 +374,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             </div>
 
+            <!-- ========================================== -->
             <!-- TÍTULO -->
+            <!-- ========================================== -->
             <div class="col-md-6">
 
                 <label class="form-label fw-semibold">
@@ -339,7 +392,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             </div>
 
+            <!-- ========================================== -->
             <!-- DIRECCIÓN -->
+            <!-- ========================================== -->
             <div class="col-md-6">
 
                 <label class="form-label fw-semibold">
@@ -355,7 +410,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             </div>
 
+            <!-- ========================================== -->
             <!-- TELÉFONO -->
+            <!-- ========================================== -->
             <div class="col-md-6">
 
                 <label class="form-label fw-semibold">
@@ -371,7 +428,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             </div>
 
+            <!-- ========================================== -->
             <!-- ESTADO CIVIL -->
+            <!-- ========================================== -->
             <div class="col-md-6">
 
                 <label class="form-label fw-semibold">
@@ -408,7 +467,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             </div>
 
+            <!-- ========================================== -->
             <!-- AÑOS SERVICIO -->
+            <!-- ========================================== -->
             <div class="col-md-6">
 
                 <label class="form-label fw-semibold">
@@ -425,7 +486,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             </div>
 
+            <!-- ========================================== -->
             <!-- BOTÓN -->
+            <!-- ========================================== -->
             <div class="col-12 text-end">
 
                 <button type="submit"
@@ -445,5 +508,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 </div>
 
-<!-- Bootstrap -->
+<!-- ========================================== -->
+<!-- BOOTSTRAP -->
+<!-- ========================================== -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- ========================================== -->
+<!-- FORMATO AUTOMÁTICO CÉDULA DOMINICANA -->
+<!-- ========================================== -->
+<script>
+
+document.getElementById('cedula').addEventListener('input', function (e) {
+
+    // ELIMINAR TODO LO QUE NO SEA NÚMERO
+    let valor = e.target.value.replace(/\D/g, '');
+
+    // LIMITAR A 11 NÚMEROS
+    valor = valor.substring(0, 11);
+
+    // FORMATO DOMINICANO
+    // 000-0000000-0
+
+    if (valor.length > 3 && valor.length <= 10) {
+
+        valor = valor.replace(
+            /^(\d{3})(\d+)/,
+            '$1-$2'
+        );
+
+    } else if (valor.length > 10) {
+
+        valor = valor.replace(
+            /^(\d{3})(\d{7})(\d+)/,
+            '$1-$2-$3'
+        );
+    }
+
+    // MOSTRAR FORMATO
+    e.target.value = valor;
+
+});
+
+</script>

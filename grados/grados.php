@@ -3,7 +3,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-include(__DIR__ . "/../conexion/conexion.php");
+include("conexion/conexion.php");
 
 $mensaje = "";
 $tipoMensaje = "";

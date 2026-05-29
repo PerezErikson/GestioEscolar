@@ -9,72 +9,104 @@ $tipo_mensaje = "";
 // =========================
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['accion'] === 'editar') {
 
-    $id = intval($_POST['id']);
+    $numero = intval($_POST['numero']);
+
     $nombre = trim($_POST['nombre']);
     $apellido = trim($_POST['apellido']);
-    $cedula = trim($_POST['cedula']);
+    $cedula = trim($_POST['ID']);
     $correo = trim($_POST['correo']);
     $fecha_nacimiento = $_POST['fecha_nacimiento'];
     $direccion = trim($_POST['direccion']);
     $telefono = trim($_POST['telefono']);
-    $padre = trim($_POST['padre']);
-    $madre = trim($_POST['madre']);
+
     $grado = intval($_POST['grado']);
     $nivel = intval($_POST['nivel']);
+    $responsable_id = intval($_POST['responsable_id']);
 
-    $stmt = $conn->prepare("UPDATE estudiantes 
-                            SET nombre=?, apellido=?, cedula=?, correo=?, fecha_nacimiento=?, direccion=?, telefono=?, padre=?, madre=?, grado_id=?, nivel_id=? 
-                            WHERE id=?");
+    // VALIDAR RESPONSABLE
+    if ($responsable_id <= 0) {
 
-    $stmt->bind_param(
-        "ssssssssiiii",
-        $nombre,
-        $apellido,
-        $cedula,
-        $correo,
-        $fecha_nacimiento,
-        $direccion,
-        $telefono,
-        $padre,
-        $madre,
-        $grado,
-        $nivel,
-        $id
-    );
-
-    if ($stmt->execute()) {
-
-        $mensaje = "✅ Estudiante actualizado correctamente.";
-        $tipo_mensaje = "success";
+        $mensaje = "⚠️ Debe seleccionar un Padre, Madre o Tutor.";
+        $tipo_mensaje = "warning";
 
     } else {
 
-        $mensaje = "❌ Error al actualizar el estudiante.";
-        $tipo_mensaje = "danger";
+        $stmt = $conn->prepare("
+            UPDATE estudiantes 
+            SET 
+                nombre=?,
+                apellido=?,
+                ID=?,
+                correo=?,
+                fecha_nacimiento=?,
+                direccion=?,
+                telefono=?,
+                responsable_id=?,
+                grado_id=?,
+                nivel_id=?
+            WHERE numero=?
+        ");
+
+        $stmt->bind_param(
+            "sssssssiiii",
+            $nombre,
+            $apellido,
+            $cedula,
+            $correo,
+            $fecha_nacimiento,
+            $direccion,
+            $telefono,
+            $responsable_id,
+            $grado,
+            $nivel,
+            $numero
+        );
+
+        if ($stmt->execute()) {
+
+            $mensaje = "✅ Estudiante actualizado correctamente.";
+            $tipo_mensaje = "success";
+
+        } else {
+
+            $mensaje = "❌ Error al actualizar: " . $stmt->error;
+            $tipo_mensaje = "danger";
+
+        }
+
+        $stmt->close();
     }
 }
 
 // =========================
 // OBTENER ESTUDIANTES
 // =========================
-$estudiantes = $conn->query("SELECT e.*, 
-                                    CONCAT(g.nombre, ' ', s.nombre) AS grado,
-                                    n.nombre AS nivel
-                             FROM estudiantes e
-                             INNER JOIN grados1 g ON e.grado_id = g.id
-                             INNER JOIN secciones s ON g.id_seccion = s.id
-                             INNER JOIN niveles n ON e.nivel_id = n.id
-                             ORDER BY e.id ASC");
+$estudiantes = $conn->query("
+    SELECT 
+        e.*,
+        r.nombre AS responsable_nombre,
+        r.tipo_responsable,
+        CONCAT(g.nombre, ' ', s.nombre) AS grado,
+        n.nombre AS nivel
+    FROM estudiantes e
+    LEFT JOIN responsables r 
+        ON e.responsable_id = r.id
+    INNER JOIN grados1 g 
+        ON e.grado_id = g.id
+    INNER JOIN secciones s 
+        ON g.id_seccion = s.id
+    INNER JOIN niveles n 
+        ON e.nivel_id = n.id
+    ORDER BY e.numero ASC
+");
 ?>
 
 <div class="container mt-4">
 
     <!-- TITULO -->
     <h3 class="mb-4 text-primary fw-bold">
-
         <i class="bi bi-person-vcard-fill"></i>
         Gestión de Estudiantes
-
     </h3>
 
     <!-- ALERTAS -->
@@ -94,9 +126,7 @@ $estudiantes = $conn->query("SELECT e.*,
             <?php } ?>
 
             <div class="flex-grow-1 fw-semibold">
-
                 <?php echo $mensaje; ?>
-
             </div>
 
             <button type="button"
@@ -108,16 +138,14 @@ $estudiantes = $conn->query("SELECT e.*,
 
     <?php } ?>
 
-    <!-- TABLA -->
+    <!-- CARD -->
     <div class="card border-0 shadow-lg rounded-4 p-4">
 
         <div class="d-flex justify-content-between align-items-center mb-4">
 
             <h5 class="fw-semibold mb-0">
-
                 <i class="bi bi-people"></i>
                 Lista de estudiantes registrados
-
             </h5>
 
         </div>
@@ -130,11 +158,11 @@ $estudiantes = $conn->query("SELECT e.*,
 
                     <tr>
 
-                        <th>ID</th>
+                        <th>#</th>
                         <th>Nombre</th>
-                        <th>Apellido</th>
-                        <th>Cédula</th>
+                        <th>ID</th>
                         <th>Correo</th>
+                        <th>Responsable</th>
                         <th>Grado</th>
                         <th>Nivel</th>
                         <th class="text-center">Acciones</th>
@@ -149,18 +177,14 @@ $estudiantes = $conn->query("SELECT e.*,
 
                     <tr>
 
-                        <td><?php echo $row['id']; ?></td>
+                        <td><?php echo $row['numero']; ?></td>
 
                         <td class="fw-semibold">
-                            <?php echo htmlspecialchars($row['nombre']); ?>
+                            <?php echo htmlspecialchars($row['nombre'] . ' ' . $row['apellido']); ?>
                         </td>
 
                         <td>
-                            <?php echo htmlspecialchars($row['apellido']); ?>
-                        </td>
-
-                        <td>
-                            <?php echo htmlspecialchars($row['cedula']); ?>
+                            <?php echo htmlspecialchars($row['ID']); ?>
                         </td>
 
                         <td>
@@ -168,15 +192,30 @@ $estudiantes = $conn->query("SELECT e.*,
                         </td>
 
                         <td>
-                            <span class="badge bg-primary rounded-pill px-3 py-2">
-                                <?php echo htmlspecialchars($row['grado']); ?>
+
+                            <span class="badge bg-info text-dark rounded-pill px-3 py-2">
+
+                                <?php echo htmlspecialchars($row['tipo_responsable']); ?>:
+                                <?php echo htmlspecialchars($row['responsable_nombre']); ?>
+
                             </span>
+
                         </td>
 
                         <td>
+
+                            <span class="badge bg-primary rounded-pill px-3 py-2">
+                                <?php echo htmlspecialchars($row['grado']); ?>
+                            </span>
+
+                        </td>
+
+                        <td>
+
                             <span class="badge bg-dark rounded-pill px-3 py-2">
                                 <?php echo htmlspecialchars($row['nivel']); ?>
                             </span>
+
                         </td>
 
                         <td class="text-center">
@@ -185,7 +224,7 @@ $estudiantes = $conn->query("SELECT e.*,
                             <button type="button"
                                     class="btn btn-outline-primary btn-sm rounded-3"
                                     data-bs-toggle="modal"
-                                    data-bs-target="#editarModal<?php echo $row['id']; ?>">
+                                    data-bs-target="#editarModal<?php echo $row['numero']; ?>">
 
                                 <i class="bi bi-pencil-square"></i>
                                 Editar
@@ -198,7 +237,7 @@ $estudiantes = $conn->query("SELECT e.*,
 
                     <!-- MODAL -->
                     <div class="modal fade"
-                         id="editarModal<?php echo $row['id']; ?>"
+                         id="editarModal<?php echo $row['numero']; ?>"
                          tabindex="-1"
                          aria-hidden="true">
 
@@ -210,10 +249,8 @@ $estudiantes = $conn->query("SELECT e.*,
                                 <div class="modal-header bg-dark text-white rounded-top-4">
 
                                     <h5 class="modal-title">
-
                                         <i class="bi bi-pencil-square"></i>
                                         Editar Estudiante
-
                                     </h5>
 
                                     <button type="button"
@@ -227,9 +264,10 @@ $estudiantes = $conn->query("SELECT e.*,
 
                                     <div class="modal-body p-4">
 
+                                        <!-- INPUT OCULTO -->
                                         <input type="hidden"
-                                               name="id"
-                                               value="<?php echo $row['id']; ?>">
+                                               name="numero"
+                                               value="<?php echo $row['numero']; ?>">
 
                                         <input type="hidden"
                                                name="accion"
@@ -237,6 +275,7 @@ $estudiantes = $conn->query("SELECT e.*,
 
                                         <div class="row g-3">
 
+                                            <!-- NOMBRE -->
                                             <div class="col-md-6">
 
                                                 <label class="form-label fw-semibold">
@@ -251,6 +290,7 @@ $estudiantes = $conn->query("SELECT e.*,
 
                                             </div>
 
+                                            <!-- APELLIDO -->
                                             <div class="col-md-6">
 
                                                 <label class="form-label fw-semibold">
@@ -265,20 +305,22 @@ $estudiantes = $conn->query("SELECT e.*,
 
                                             </div>
 
+                                            <!-- ID -->
                                             <div class="col-md-6">
 
                                                 <label class="form-label fw-semibold">
-                                                    Cédula
+                                                    ID
                                                 </label>
 
                                                 <input type="text"
-                                                       name="cedula"
+                                                       name="ID"
+                                                       value="<?php echo htmlspecialchars($row['ID']); ?>"
                                                        class="form-control rounded-3"
-                                                       value="<?php echo htmlspecialchars($row['cedula']); ?>"
                                                        required>
 
                                             </div>
 
+                                            <!-- CORREO -->
                                             <div class="col-md-6">
 
                                                 <label class="form-label fw-semibold">
@@ -293,6 +335,7 @@ $estudiantes = $conn->query("SELECT e.*,
 
                                             </div>
 
+                                            <!-- FECHA -->
                                             <div class="col-md-6">
 
                                                 <label class="form-label fw-semibold">
@@ -306,6 +349,7 @@ $estudiantes = $conn->query("SELECT e.*,
 
                                             </div>
 
+                                            <!-- TELEFONO -->
                                             <div class="col-md-6">
 
                                                 <label class="form-label fw-semibold">
@@ -319,6 +363,7 @@ $estudiantes = $conn->query("SELECT e.*,
 
                                             </div>
 
+                                            <!-- DIRECCION -->
                                             <div class="col-12">
 
                                                 <label class="form-label fw-semibold">
@@ -332,29 +377,45 @@ $estudiantes = $conn->query("SELECT e.*,
 
                                             </div>
 
-                                            <div class="col-md-6">
+                                            <!-- RESPONSABLE -->
+                                            <div class="col-md-12">
 
                                                 <label class="form-label fw-semibold">
-                                                    Padre
+
+                                                    <i class="bi bi-people-fill"></i>
+                                                    Padre / Madre / Tutor
+
                                                 </label>
 
-                                                <input type="text"
-                                                       name="padre"
-                                                       class="form-control rounded-3"
-                                                       value="<?php echo $row['padre']; ?>">
+                                                <select name="responsable_id"
+                                                        class="form-select rounded-3"
+                                                        required>
 
-                                            </div>
+                                                    <option value="">
+                                                        Seleccione un responsable
+                                                    </option>
 
-                                            <div class="col-md-6">
+                                                    <?php
+                                                    $responsables2 = $conn->query("
+                                                        SELECT *
+                                                        FROM responsables
+                                                        ORDER BY nombre ASC
+                                                    ");
 
-                                                <label class="form-label fw-semibold">
-                                                    Madre
-                                                </label>
+                                                    while($r = $responsables2->fetch_assoc()) {
 
-                                                <input type="text"
-                                                       name="madre"
-                                                       class="form-control rounded-3"
-                                                       value="<?php echo $row['madre']; ?>">
+                                                        $selected = ($r['id'] == $row['responsable_id'])
+                                                            ? 'selected'
+                                                            : '';
+
+                                                        echo "
+                                                        <option value='{$r['id']}' $selected>
+                                                            {$r['tipo_responsable']} - {$r['nombre']}
+                                                        </option>";
+                                                    }
+                                                    ?>
+
+                                                </select>
 
                                             </div>
 
@@ -370,18 +431,28 @@ $estudiantes = $conn->query("SELECT e.*,
                                                         required>
 
                                                     <?php
-                                                    $grados2 = $conn->query("SELECT g.id, g.nombre AS grado, s.nombre AS seccion 
-                                                                             FROM grados1 g 
-                                                                             INNER JOIN secciones s ON g.id_seccion = s.id 
-                                                                             ORDER BY g.nombre ASC, s.nombre ASC");
+
+                                                    $grados2 = $conn->query("
+                                                        SELECT 
+                                                            g.id,
+                                                            g.nombre AS grado,
+                                                            s.nombre AS seccion
+                                                        FROM grados1 g
+                                                        INNER JOIN secciones s
+                                                            ON g.id_seccion = s.id
+                                                        ORDER BY g.nombre ASC
+                                                    ");
 
                                                     while($g2 = $grados2->fetch_assoc()) {
 
-                                                        $selected = ($g2['id'] == $row['grado_id']) ? "selected" : "";
+                                                        $selected = ($g2['id'] == $row['grado_id'])
+                                                            ? "selected"
+                                                            : "";
 
-                                                        echo "<option value='{$g2['id']}' $selected>" .
-                                                            htmlspecialchars($g2['grado'] . ' ' . $g2['seccion']) .
-                                                            "</option>";
+                                                        echo "
+                                                        <option value='{$g2['id']}' $selected>
+                                                            {$g2['grado']} {$g2['seccion']}
+                                                        </option>";
                                                     }
                                                     ?>
 
@@ -401,15 +472,23 @@ $estudiantes = $conn->query("SELECT e.*,
                                                         required>
 
                                                     <?php
-                                                    $niveles2 = $conn->query("SELECT * FROM niveles ORDER BY nombre ASC");
+
+                                                    $niveles2 = $conn->query("
+                                                        SELECT *
+                                                        FROM niveles
+                                                        ORDER BY nombre ASC
+                                                    ");
 
                                                     while($n2 = $niveles2->fetch_assoc()) {
 
-                                                        $selected = ($n2['id'] == $row['nivel_id']) ? "selected" : "";
+                                                        $selected = ($n2['id'] == $row['nivel_id'])
+                                                            ? "selected"
+                                                            : "";
 
-                                                        echo "<option value='{$n2['id']}' $selected>" .
-                                                            htmlspecialchars($n2['nombre']) .
-                                                            "</option>";
+                                                        echo "
+                                                        <option value='{$n2['id']}' $selected>
+                                                            {$n2['nombre']}
+                                                        </option>";
                                                     }
                                                     ?>
 
@@ -477,6 +556,7 @@ setTimeout(() => {
         let bsAlert = new bootstrap.Alert(alerta);
 
         bsAlert.close();
+
     }
 
 }, 5000);
