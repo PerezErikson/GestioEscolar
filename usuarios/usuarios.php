@@ -70,6 +70,25 @@ if (isset($_GET['rol'])) {
 }
 
 // ==========================================
+// FUNCIÓN GENERAR CONTRASEÑA
+// ==========================================
+function generarPassword($longitud = 8) {
+
+    $caracteres =
+        'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+    $password = '';
+
+    for ($i = 0; $i < $longitud; $i++) {
+
+        $password .=
+            $caracteres[random_int(0, strlen($caracteres) - 1)];
+    }
+
+    return $password;
+}
+
+// ==========================================
 // GUARDAR USUARIO
 // ==========================================
 if (
@@ -87,7 +106,7 @@ if (
         case 'estudiante':
 
             $query = $conn->query("
-                SELECT nombre, apellido, correo, fecha_nacimiento
+                SELECT nombre, apellido, correo
                 FROM estudiantes
                 WHERE id = $usuario_id
             ");
@@ -97,7 +116,7 @@ if (
         case 'docente':
 
             $query = $conn->query("
-                SELECT nombre, apellido, correo, fecha_nacimiento
+                SELECT nombre, apellido, correo
                 FROM docente
                 WHERE id = $usuario_id
             ");
@@ -107,7 +126,7 @@ if (
         case 'administrador':
 
             $query = $conn->query("
-                SELECT nombre, apellido, correo, fecha_nacimiento
+                SELECT nombre, apellido, correo
                 FROM administrador
                 WHERE id = $usuario_id
             ");
@@ -131,21 +150,15 @@ if (
         $correo =
             $data['correo'];
 
-        $fecha_nacimiento =
-            $data['fecha_nacimiento'];
-
         // ==========================================
-        // GENERAR CONTRASEÑA
+        // GENERAR CONTRASEÑA DE 8 CARACTERES
         // ==========================================
-
-        $partes = explode("-", $fecha_nacimiento);
 
         $contraseña =
-            $partes[2] .
-            $partes[1] .
-            $partes[0];
+            generarPassword(8);
 
-        $contraseña_guardar = $contraseña;
+        $contraseña_guardar =
+            $contraseña;
 
         // ==========================================
         // CONVERTIR ROL A ID
