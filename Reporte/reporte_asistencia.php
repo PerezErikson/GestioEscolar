@@ -1,88 +1,122 @@
 <?php
-include("conexion/conexion.php");
+include(__DIR__ . "/../conexion/conexion.php");
 
-// Obtener grados
-$grados = $conn->query("SELECT g.id, CONCAT(g.nombre, ' ', s.nombre) AS grado 
-                        FROM grados1 g 
-                        INNER JOIN secciones s ON g.id_seccion = s.id 
-                        ORDER BY g.nombre ASC, s.nombre ASC");
+$mensaje = "";
+$tipo_mensaje = "";
 
-// Variables
-$reporte = [];
-if (isset($_GET['grado_id']) && isset($_GET['fecha'])) {
-    $grado_id = intval($_GET['grado_id']);
-    $fecha = $_GET['fecha'];
+// =========================
+// OBTENER GRADOS
+// =========================
+$grados = $conn->query("
+    SELECT g.id, CONCAT(g.nombre, ' ', s.nombre) AS grado
+    FROM grados1 g
+    INNER JOIN secciones s ON g.id_seccion = s.id
+    ORDER BY g.id ASC
+");
 
-    $sql = "SELECT e.nombre, e.apellido, a.estado 
-            FROM asistencia a
-            INNER JOIN estudiantes e ON a.estudiante_id = e.id
-            WHERE a.grado_id = ? AND a.fecha = ?
-            ORDER BY e.apellido ASC, e.nombre ASC";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("is", $grado_id, $fecha);
-    $stmt->execute();
-    $reporte = $stmt->get_result();
+// =========================
+// FILTROS
+// =========================
+$grado_id = isset($_GET['grado_id']) ? intval($_GET['grado_id']) : 0;
+$fecha = isset($_GET['fecha']) ? $_GET['fecha'] : date('Y-m-d');
+
+$asistencias = null;
+if ($grado_id > 0) {
+    $asistencias = $conn->query("
+        SELECT 
+            e.numero,
+            e.nombre,
+            e.apellido,
+            e.ID,
+            e.correo,
+            a.estado,
+            a.fecha
+        FROM asistencia a
+        INNER JOIN estudiantes e ON a.estudiante_id = e.numero
+        WHERE a.grado_id = $grado_id AND a.fecha = '$fecha'
+        ORDER BY e.numero ASC
+    ");
 }
 ?>
 
 <div class="container mt-4">
-    <h3 class="mb-4 text-primary"><i class="bi bi-journal-check"></i> Reporte de Asistencia</h3>
+    <h3 class="mb-4 text-primary fw-bold">
+        <i class="bi bi-clipboard-check"></i> Reporte de Asistencia
+    </h3>
 
-    <div class="card shadow-sm p-4 mb-4">
-        <form method="GET" action="principal.php" class="row g-3">
-            <input type="hidden" name="seccion" value="reporte_asistencia">
-            <div class="col-md-5">
-                <label class="form-label">Seleccionar grado</label>
-                <select name="grado_id" class="form-select" required>
-                    <option value="">-- Seleccione --</option>
-                    <?php while($g = $grados->fetch_assoc()) { ?>
-                        <option value="<?php echo $g['id']; ?>" 
-                            <?php if(isset($grado_id) && $grado_id == $g['id']) echo "selected"; ?>>
-                            <?php echo htmlspecialchars($g['grado']); ?>
-                        </option>
-                    <?php } ?>
-                </select>
-            </div>
-            <div class="col-md-4">
-                <label class="form-label">Fecha</label>
-                <input type="date" name="fecha" class="form-control" 
-                       value="<?php echo isset($fecha) ? $fecha : ''; ?>" required>
-            </div>
-            <div class="col-md-3 text-end">
-                <button type="submit" class="btn btn-primary w-100">Ver reporte</button>
-            </div>
-        </form>
-    </div>
+    <!-- SELECTOR DE GRADO Y FECHA -->
+    <form method="GET" action="principal.php" class="row g-3 align-items-center">
+        <input type="hidden" name="seccion" value="reporte_asistencia">
 
-    <?php if (!empty($reporte) && $reporte->num_rows > 0) { ?>
-    <div class="card shadow-sm p-4">
-        <h6 class="mb-3">Asistencia del grado en la fecha seleccionada</h6>
-        <table class="table table-striped table-hover align-middle">
+        <div class="col-md-5">
+            <label class="form-label fw-bold">Seleccionar grado:</label>
+            <select name="grado_id" class="form-select" required>
+                <option value="">-- Seleccione --</option>
+                <?php while($g = $grados->fetch_assoc()) { ?>
+                    <option value="<?php echo $g['id']; ?>"
+                        <?php if($grado_id == $g['id']) echo "selected"; ?>>
+                        <?php echo htmlspecialchars($g['grado']); ?>
+                    </option>
+                <?php } ?>
+            </select>
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label fw-bold">Fecha:</label>
+            <input type="date" name="fecha" class="form-control" value="<?php echo $fecha; ?>">
+        </div>
+
+        <div class="col-md-2 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary w-100">
+                <i class="bi bi-search"></i> Buscar
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- TABLA DE REPORTE -->
+<?php if ($grado_id > 0 && $asistencias && $asistencias->num_rows > 0) { ?>
+<div class="card border-0 shadow-lg rounded-4 p-4">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
             <thead class="table-dark">
                 <tr>
+                    <th>N°</th>
                     <th>Nombre</th>
-                    <th>Apellido</th>
-                    <th class="text-center">Estado</th>
+                    <th>ID</th>
+                    <th>Correo</th>
+                    <th>Estado</th>
+                    <th>Fecha</th>
                 </tr>
             </thead>
             <tbody>
-                <?php while($row = $reporte->fetch_assoc()) { ?>
+                <?php while($row = $asistencias->fetch_assoc()) { ?>
                 <tr>
-                    <td><?php echo htmlspecialchars($row['nombre']); ?></td>
-                    <td><?php echo htmlspecialchars($row['apellido']); ?></td>
-                    <td class="text-center">
-                        <?php 
-                            if ($row['estado'] == 'Presente') echo "<span class='badge bg-success'>Presente</span>";
-                            elseif ($row['estado'] == 'Ausente') echo "<span class='badge bg-danger'>Ausente</span>";
-                            else echo "<span class='badge bg-warning text-dark'>Excusa</span>";
+                    <td><?php echo $row['numero']; ?></td>
+                    <td><?php echo htmlspecialchars($row['nombre'].' '.$row['apellido']); ?></td>
+                    <td><?php echo htmlspecialchars($row['ID']); ?></td>
+                    <td><?php echo htmlspecialchars($row['correo']); ?></td>
+                    <td>
+                        <?php
+                            $color = 'secondary';
+                            if ($row['estado'] === 'Presente') $color = 'success';
+                            elseif ($row['estado'] === 'Ausente') $color = 'danger';
+                            elseif ($row['estado'] === 'Excusa') $color = 'warning';
                         ?>
+                        <span class="badge bg-<?php echo $color; ?>">
+                            <?php echo htmlspecialchars($row['estado']); ?>
+                        </span>
                     </td>
+                    <td><?php echo htmlspecialchars($row['fecha']); ?></td>
                 </tr>
                 <?php } ?>
             </tbody>
         </table>
     </div>
-    <?php } elseif (isset($grado_id) && isset($fecha)) { ?>
-        <div class="alert alert-warning">⚠️ No hay registros de asistencia para este curso en esa fecha.</div>
-    <?php } ?>
 </div>
+<?php } elseif ($grado_id > 0) { ?>
+    <div class="alert alert-warning">⚠️ No hay registros de asistencia para esta fecha.</div>
+<?php } ?>
+
+<!-- BOOTSTRAP -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

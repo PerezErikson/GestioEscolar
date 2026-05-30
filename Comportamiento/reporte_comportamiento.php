@@ -1,5 +1,4 @@
 <?php
-// Iniciar sesión solo si no está activa
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -16,9 +15,15 @@ $reporte = [];
 // =========================
 if ($rol == 3) {
 
-    $sql = "SELECT e.nombre, e.apellido, c.nota, c.observacion, c.fecha
+    $sql = "SELECT
+                e.nombre,
+                e.apellido,
+                c.nota,
+                c.observacion,
+                c.fecha
             FROM comportamiento c
-            INNER JOIN estudiantes e ON c.estudiante_id = e.id
+            INNER JOIN estudiantes e
+                ON c.estudiante_id = e.numero
             WHERE e.nombre = ?
             ORDER BY c.fecha DESC";
 
@@ -33,20 +38,31 @@ if ($rol == 3) {
     // =========================
     // ADMIN Y DOCENTE
     // =========================
-    $grados = $conn->query("SELECT g.id, CONCAT(g.nombre, ' ', s.nombre) AS grado 
-                            FROM grados1 g 
-                            INNER JOIN secciones s ON g.id_seccion = s.id 
-                            ORDER BY g.nombre ASC, s.nombre ASC");
+    $grados = $conn->query("
+        SELECT
+            g.id,
+            CONCAT(g.nombre,' ',s.nombre) AS grado
+        FROM grados1 g
+        INNER JOIN secciones s
+            ON g.id_seccion = s.id
+        ORDER BY g.nombre ASC, s.nombre ASC
+    ");
 
     if (isset($_GET['grado_id']) && isset($_GET['fecha'])) {
 
         $grado_id = intval($_GET['grado_id']);
         $fecha = $_GET['fecha'];
 
-        $sql = "SELECT e.nombre, e.apellido, c.nota, c.observacion 
+        $sql = "SELECT
+                    e.nombre,
+                    e.apellido,
+                    c.nota,
+                    c.observacion
                 FROM comportamiento c
-                INNER JOIN estudiantes e ON c.estudiante_id = e.id
-                WHERE c.grado_id = ? AND c.fecha = ?
+                INNER JOIN estudiantes e
+                    ON c.estudiante_id = e.numero
+                WHERE c.grado_id = ?
+                AND c.fecha = ?
                 ORDER BY e.apellido ASC, e.nombre ASC";
 
         $stmt = $conn->prepare($sql);

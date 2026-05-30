@@ -36,23 +36,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_comportamient
                                 (estudiante_id, grado_id, fecha, nota, observacion)
                                 VALUES (?, ?, ?, ?, ?)");
 
-        $stmt->bind_param("iisss",
-                          $estudiante_id,
-                          $grado_id,
-                          $fecha,
-                          $nota,
-                          $observacion);
+$stmt = $conn->prepare("
+    INSERT INTO comportamiento
+    (estudiante_id, grado_id, fecha, nota, observacion)
+    VALUES (?, ?, ?, ?, ?)
+");
 
-        if ($stmt->execute()) {
+$stmt->bind_param(
+    "iisss",
+    $estudiante_id,
+    $grado_id,
+    $fecha,
+    $nota,
+    $observacion
+);
 
-            $mensaje = "✅ Comportamiento registrado correctamente.";
-            $tipo_mensaje = "success";
+if (!$stmt->execute()) {
 
-        } else {
+    die(
+        "Error MySQL: " .
+        $stmt->error .
+        "<br>Código: " .
+        $stmt->errno
+    );
 
-            $mensaje = "❌ Error al guardar el comportamiento.";
-            $tipo_mensaje = "danger";
-        }
+}
+
+$mensaje = "✅ Comportamiento registrado correctamente.";
+$tipo_mensaje = "success";
     }
 }
 
@@ -67,16 +78,19 @@ $grados = $conn->query("SELECT g.id, CONCAT(g.nombre, ' ', s.nombre) AS grado
 // =========================
 // OBTENER ESTUDIANTES
 // =========================
+// =========================
+// OBTENER ESTUDIANTES
+// =========================
 $estudiantes = [];
 
 if (isset($_GET['grado_id'])) {
 
     $grado_id = intval($_GET['grado_id']);
-
-    $estudiantes = $conn->query("SELECT e.id, e.nombre, e.apellido 
-                                 FROM estudiantes e 
-                                 WHERE e.grado_id = $grado_id 
-                                 ORDER BY e.apellido ASC, e.nombre ASC");
+$estudiantes = $conn->query("SELECT e.numero, e.nombre, e.apellido
+                             FROM estudiantes e
+                             WHERE e.grado_id = $grado_id
+                             ORDER BY e.apellido ASC, e.nombre ASC");
+                            
 }
 ?>
 
@@ -183,22 +197,24 @@ if (isset($_GET['grado_id'])) {
                     </label>
 
                     <select name="estudiante_id"
-                            class="form-select rounded-3"
-                            required>
+        class="form-select rounded-3"
+        required>
 
-                        <option value="">-- Seleccione estudiante --</option>
+    <option value="">-- Seleccione estudiante --</option>
 
-                        <?php while($row = $estudiantes->fetch_assoc()) { ?>
+    <?php while($row = $estudiantes->fetch_assoc()) { ?>
 
-                            <option value="<?php echo $row['id']; ?>">
+        <option value="<?php echo $row['numero']; ?>">
 
-                                <?php echo htmlspecialchars($row['nombre'] . ' ' . $row['apellido']); ?>
+            <?php echo htmlspecialchars(
+                $row['nombre'] . ' ' . $row['apellido']
+            ); ?>
 
-                            </option>
+        </option>
 
-                        <?php } ?>
+    <?php } ?>
 
-                    </select>
+</select>
 
                 </div>
 

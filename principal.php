@@ -1,5 +1,8 @@
 <?php
+ob_start();
 session_start();
+// resto de tu código...
+
 
 if (!isset($_SESSION['rol_id'])) {
     header("Location: login.php");
@@ -41,37 +44,66 @@ $nombre_centro = $datos_config['nombre_centro'] ?? 'GESTIÓN ESCOLAR';
     <style>
 
         body{
-            background-color:#f5f7fa;
+            background:#f4f6f9;
+            overflow-x:hidden;
         }
 
         /* SIDEBAR */
         .sidebar{
-            width:260px;
-            background:#002b5c;
-            color:white;
+            width:270px;
+            height:100vh;
             position:fixed;
-            height:100%;
+            top:0;
+            left:0;
+            background:linear-gradient(180deg,#002b5c,#001933);
+            color:white;
             overflow-y:auto;
-            padding-top:20px;
+            box-shadow:4px 0 15px rgba(0,0,0,0.1);
+            z-index:1000;
+        }
+
+        .sidebar-header{
+            padding:25px 20px;
+            text-align:center;
+            border-bottom:1px solid rgba(255,255,255,0.1);
+        }
+
+        .sidebar-header h4{
+            font-weight:bold;
+            margin-bottom:10px;
+        }
+
+        .user-box{
+            background:rgba(255,255,255,0.08);
+            padding:12px;
+            border-radius:12px;
+            margin-top:15px;
+        }
+
+        .menu-title{
+            font-size:13px;
+            color:#bfc9d4;
+            text-transform:uppercase;
+            letter-spacing:1px;
+            padding:20px 20px 10px;
         }
 
         .sidebar a{
-            display:block;
+            display:flex;
+            align-items:center;
+            gap:10px;
             color:white;
-            padding:12px 20px;
             text-decoration:none;
-            border-radius:8px;
-            margin:4px 10px;
+            padding:12px 18px;
+            margin:5px 12px;
+            border-radius:12px;
             transition:0.3s;
+            font-size:15px;
         }
 
         .sidebar a:hover{
-            background:#004080;
-        }
-
-        /* SUBMENU */
-        .submenu-btn{
-            cursor:pointer;
+            background:#0d6efd;
+            transform:translateX(3px);
         }
 
         .submenu{
@@ -80,25 +112,41 @@ $nombre_centro = $datos_config['nombre_centro'] ?? 'GESTIÓN ESCOLAR';
         }
 
         .submenu a{
-            font-size:14px;
             background:rgba(255,255,255,0.05);
+            font-size:14px;
         }
 
-        .submenu a:hover{
-            background:#0059b3;
+        .submenu-btn{
+            cursor:pointer;
+        }
+
+        .logout{
+            background:#dc3545 !important;
+            margin-top:20px;
+        }
+
+        .logout:hover{
+            background:#bb2d3b !important;
         }
 
         /* CONTENIDO */
         .content{
-            margin-left:280px;
-            padding:25px;
+            margin-left:270px;
+            padding:30px;
         }
 
-        .card{
-            border-radius:12px;
-            box-shadow:0 2px 8px rgba(0,0,0,0.1);
-            text-align:center;
+        .topbar{
+            background:white;
+            padding:18px 25px;
+            border-radius:16px;
+            box-shadow:0 2px 10px rgba(0,0,0,0.08);
+            margin-bottom:25px;
+        }
+
+        .topbar h3{
+            margin:0;
             font-weight:bold;
+            color:#002b5c;
         }
 
     </style>
@@ -109,35 +157,42 @@ $nombre_centro = $datos_config['nombre_centro'] ?? 'GESTIÓN ESCOLAR';
 <!-- SIDEBAR -->
 <div class="sidebar">
 
-    <!-- NOMBRE DEL CENTRO -->
-    <h4 class="text-center px-2">
+    <!-- HEADER -->
+    <div class="sidebar-header">
 
-        <?php echo htmlspecialchars($nombre_centro); ?>
+        <h4>
+            <?php echo htmlspecialchars($nombre_centro); ?>
+        </h4>
 
-    </h4>
+        <div class="user-box">
+            👤 <?php echo htmlspecialchars($nombre); ?>
+        </div>
 
-    <!-- USUARIO -->
-    <p class="text-center mb-2">
-        👤 <?php echo $nombre; ?>
-    </p>
+    </div>
 
-    <hr>
+    <!-- MENU -->
+    <div class="menu-title">
+        Menú Principal
+    </div>
 
     <!-- INICIO -->
     <a href="principal.php">
-        🏠 Inicio
+        <i class="bi bi-house-door-fill"></i>
+        Inicio
     </a>
 
     <?php if ($rol == 1): ?>
 
         <!-- CONFIGURACION -->
         <a href="principal.php?seccion=configuracion">
-            ⚙️ Configuración
+            <i class="bi bi-gear-fill"></i>
+            Configuración
         </a>
 
         <!-- USUARIOS -->
         <a href="principal.php?seccion=usuarios">
-            👥 Usuarios
+            <i class="bi bi-people-fill"></i>
+            Usuarios
         </a>
 
         <!-- ACADEMICO -->
@@ -146,8 +201,10 @@ $nombre_centro = $datos_config['nombre_centro'] ?? 'GESTIÓN ESCOLAR';
             <a class="submenu-btn"
                onclick="toggleMenu('academicoMenu')">
 
-                📚 Académico
-                <i class="bi bi-caret-down-fill float-end"></i>
+                <i class="bi bi-book-fill"></i>
+                Académico
+
+                <i class="bi bi-caret-down-fill ms-auto"></i>
 
             </a>
 
@@ -173,14 +230,16 @@ $nombre_centro = $datos_config['nombre_centro'] ?? 'GESTIÓN ESCOLAR';
 
         </div>
 
-        <!-- PADRES / TUTORES -->
+        <!-- PADRES -->
         <div>
 
             <a class="submenu-btn"
                onclick="toggleMenu('tutoresMenu')">
 
-                👨‍👩‍👦 Padres / Tutores
-                <i class="bi bi-caret-down-fill float-end"></i>
+                <i class="bi bi-person-hearts"></i>
+                Padres / Tutores
+
+                <i class="bi bi-caret-down-fill ms-auto"></i>
 
             </a>
 
@@ -191,7 +250,7 @@ $nombre_centro = $datos_config['nombre_centro'] ?? 'GESTIÓN ESCOLAR';
                 </a>
 
                 <a href="principal.php?seccion=tutores">
-                    👨‍👩‍🏫 Ver Tutores
+                    👨‍👩‍👧 Ver Tutores
                 </a>
 
             </div>
@@ -204,8 +263,10 @@ $nombre_centro = $datos_config['nombre_centro'] ?? 'GESTIÓN ESCOLAR';
             <a class="submenu-btn"
                onclick="toggleMenu('estudiantesMenu')">
 
-                👩‍🎓 Estudiantes
-                <i class="bi bi-caret-down-fill float-end"></i>
+                <i class="bi bi-mortarboard-fill"></i>
+                Estudiantes
+
+                <i class="bi bi-caret-down-fill ms-auto"></i>
 
             </a>
 
@@ -219,6 +280,10 @@ $nombre_centro = $datos_config['nombre_centro'] ?? 'GESTIÓN ESCOLAR';
                     👩‍🎓 Ver Estudiantes
                 </a>
 
+                <a href="principal.php?seccion=estado_academico">
+                    📚 Estado Académico
+                </a>
+
             </div>
 
         </div>
@@ -229,8 +294,10 @@ $nombre_centro = $datos_config['nombre_centro'] ?? 'GESTIÓN ESCOLAR';
             <a class="submenu-btn"
                onclick="toggleMenu('docentesMenu')">
 
-                👨‍🏫 Docentes
-                <i class="bi bi-caret-down-fill float-end"></i>
+                <i class="bi bi-person-workspace"></i>
+                Docentes
+
+                <i class="bi bi-caret-down-fill ms-auto"></i>
 
             </a>
 
@@ -250,7 +317,8 @@ $nombre_centro = $datos_config['nombre_centro'] ?? 'GESTIÓN ESCOLAR';
 
         <!-- CALIFICACIONES -->
         <a href="principal.php?seccion=calificaciones">
-            📝 Calificaciones
+            <i class="bi bi-journal-check"></i>
+            Calificaciones
         </a>
 
         <!-- COMPORTAMIENTO -->
@@ -259,8 +327,10 @@ $nombre_centro = $datos_config['nombre_centro'] ?? 'GESTIÓN ESCOLAR';
             <a class="submenu-btn"
                onclick="toggleMenu('comportamientoMenu')">
 
-                📋 Comportamiento
-                <i class="bi bi-caret-down-fill float-end"></i>
+                <i class="bi bi-clipboard-data-fill"></i>
+                Comportamiento
+
+                <i class="bi bi-caret-down-fill ms-auto"></i>
 
             </a>
 
@@ -284,8 +354,10 @@ $nombre_centro = $datos_config['nombre_centro'] ?? 'GESTIÓN ESCOLAR';
             <a class="submenu-btn"
                onclick="toggleMenu('asistenciaMenu')">
 
-                📅 Asistencia
-                <i class="bi bi-caret-down-fill float-end"></i>
+                <i class="bi bi-calendar-check-fill"></i>
+                Asistencia
+
+                <i class="bi bi-caret-down-fill ms-auto"></i>
 
             </a>
 
@@ -303,70 +375,66 @@ $nombre_centro = $datos_config['nombre_centro'] ?? 'GESTIÓN ESCOLAR';
 
         </div>
 
-        <!-- CHAT -->
-        <a href="principal.php?seccion=chat">
-            💬 Chat
-        </a>
-
     <?php elseif ($rol == 2): ?>
 
         <!-- DOCENTE -->
 
-        <a href="principal.php?seccion=calificaciones">
-            📝 Calificaciones
-        </a>
-
         <a href="principal.php?seccion=comportamiento">
-            📋 Comportamiento
+            <i class="bi bi-clipboard-check-fill"></i>
+            Comportamiento
         </a>
 
         <a href="principal.php?seccion=reporte_comportamiento">
-            📊 Reporte de Comportamiento
+            <i class="bi bi-bar-chart-fill"></i>
+            Reportes
         </a>
 
         <a href="principal.php?seccion=asistencia">
-            📅 Asistencia
+            <i class="bi bi-calendar2-check-fill"></i>
+            Asistencia
         </a>
 
         <a href="principal.php?seccion=reporte_asistencia">
-            📊 Reporte de Asistencia
-        </a>
-
-        <a href="principal.php?seccion=chat">
-            💬 Chat
+            <i class="bi bi-file-earmark-bar-graph-fill"></i>
+            Reporte Asistencia
         </a>
 
     <?php elseif ($rol == 3): ?>
 
         <!-- ESTUDIANTE -->
 
-        <a href="principal.php?seccion=calificaciones">
-            📝 Calificaciones
+        <a href="principal.php?seccion=estado_academico">
+            <i class="bi bi-journal-text"></i>
+            Estado Académico
         </a>
 
         <a href="principal.php?seccion=reporte_comportamiento">
-            📊 Reporte de Comportamiento
-        </a>
-
-        <a href="principal.php?seccion=chat">
-            💬 Chat
+            <i class="bi bi-clipboard-data"></i>
+            Mi Comportamiento
         </a>
 
     <?php endif; ?>
 
-    <hr>
-
     <!-- CERRAR SESION -->
-    <a href="logout.php" style="color:#ff4d4d;">
-
-        🚪 Cerrar sesión
-
+    <a href="logout.php" class="logout">
+        <i class="bi bi-box-arrow-right"></i>
+        Cerrar sesión
     </a>
 
 </div>
 
 <!-- CONTENIDO -->
 <div class="content">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+
+        <h3>
+            Bienvenido,
+            <?php echo htmlspecialchars($nombre); ?>
+        </h3>
+
+    </div>
 
 <?php
 
@@ -382,7 +450,7 @@ if (!isset($_GET['seccion'])) {
     // PANEL DOCENTE
     elseif ($rol == 2) {
 
-       include("panel_docente.php");
+        include("panel_docente.php");
 
     }
 
@@ -390,6 +458,7 @@ if (!isset($_GET['seccion'])) {
     elseif ($rol == 3) {
 
         include("panel_estudiante.php");
+
     }
 
 } else {
@@ -433,6 +502,9 @@ if (!isset($_GET['seccion'])) {
     elseif ($seccion === 'inscripcion_estudiante' && $rol == 1)
         include("Inscripcion/inscripcion_estudiante.php");
 
+elseif ($seccion === 'estado_academico')
+    include("Estado/estado_academico.php");
+
     elseif ($seccion === 'calificaciones')
         include("Calificaciones/calificaciones.php");
 
@@ -450,6 +522,9 @@ if (!isset($_GET['seccion'])) {
 
     elseif ($seccion === 'chat')
         include("Chat/chat.php");
+
+    else
+        echo "<div class='alert alert-danger'>Sección no encontrada.</div>";
 }
 
 ?>
@@ -480,3 +555,5 @@ function toggleMenu(id){
 
 </body>
 </html>
+<?php
+ob_end_flush();
