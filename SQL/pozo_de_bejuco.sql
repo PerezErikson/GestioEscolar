@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 07-06-2026 a las 22:05:55
+-- Tiempo de generación: 23-06-2026 a las 01:32:36
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -102,7 +102,9 @@ CREATE TABLE `asistencia` (
 --
 
 INSERT INTO `asistencia` (`id`, `estudiante_id`, `grado_id`, `fecha`, `estado`) VALUES
-(15, 19, 5, '2026-05-30', 'Presente');
+(15, 19, 5, '2026-05-30', 'Presente'),
+(16, 19, 3, '2026-06-11', 'Presente'),
+(17, 20, 3, '2026-06-11', 'Ausente');
 
 -- --------------------------------------------------------
 
@@ -130,7 +132,7 @@ CREATE TABLE `calificaciones` (
 --
 
 INSERT INTO `calificaciones` (`id`, `estudiante_id`, `grado_id`, `materia_id`, `anio_id`, `competencia_id`, `p1`, `p2`, `p3`, `p4`, `nota_final`, `fecha_registro`) VALUES
-(1, 19, 3, 15, 1, 1, 100.00, 100.00, 100.00, 100.00, 100.00, '2026-06-03 16:28:41'),
+(1, 19, 3, 15, 1, 1, 90.00, 100.00, 100.00, 100.00, 97.50, '2026-06-03 16:28:41'),
 (2, 19, 3, 16, 1, 1, 100.00, 100.00, 100.00, 100.00, 100.00, '2026-06-03 16:28:41'),
 (3, 19, 3, 17, 1, 1, 100.00, 100.00, 100.00, 100.00, 100.00, '2026-06-03 16:28:41'),
 (4, 19, 3, 18, 1, 1, 100.00, 100.00, 100.00, 100.00, 100.00, '2026-06-03 16:28:41'),
@@ -408,7 +410,9 @@ CREATE TABLE `mensajes` (
 --
 
 INSERT INTO `mensajes` (`id`, `emisor_id`, `receptor_id`, `mensaje`, `leido`, `oculto_emisor`, `oculto_receptor`, `fecha`) VALUES
-(1, 5, 6, 'hola', 1, 0, 0, '2026-06-07 16:02:58');
+(1, 5, 6, 'hola', 1, 1, 0, '2026-06-07 16:02:58'),
+(2, 5, 7, 'hola', 0, 1, 0, '2026-06-07 20:03:59'),
+(3, 5, 6, 'hola como estas', 0, 1, 0, '2026-06-11 17:52:18');
 
 -- --------------------------------------------------------
 
@@ -712,7 +716,7 @@ ALTER TABLE `asignacion_materias`
 -- AUTO_INCREMENT de la tabla `asistencia`
 --
 ALTER TABLE `asistencia`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT de la tabla `calificaciones`
@@ -778,7 +782,7 @@ ALTER TABLE `materias`
 -- AUTO_INCREMENT de la tabla `mensajes`
 --
 ALTER TABLE `mensajes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de la tabla `niveles`
