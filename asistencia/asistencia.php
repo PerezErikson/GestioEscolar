@@ -137,6 +137,7 @@ if ($grado_id > 0) {
                                 <option value="Presente" <?php if($estado_actual=='Presente') echo 'selected'; ?>>Presente</option>
                                 <option value="Ausente" <?php if($estado_actual=='Ausente') echo 'selected'; ?>>Ausente</option>
                                 <option value="Excusa" <?php if($estado_actual=='Excusa') echo 'selected'; ?>>Excusa</option>
+                                <option value="Tardanza" <?php if($estado_actual=='Tardanza') echo 'selected'; ?>>Tardanza</option>
                             </select>
                         </td>
                     </tr>

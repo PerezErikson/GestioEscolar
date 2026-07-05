@@ -157,22 +157,36 @@ if($grado_id > 0 && $anio_id > 0){
         $info_estudiante = $conn->query("SELECT nombre, apellido FROM estudiantes WHERE numero = $estudiante_id LIMIT 1")->fetch_assoc();
         $nombre_completo_est = $info_estudiante ? $info_estudiante['apellido'] . ", " . $info_estudiante['nombre'] : "";
 
-        $notas_query = $conn->query("
-            SELECT m.id AS materia_id, m.nombre AS materia_nombre, c.competencia_id, c.p1, c.p2, c.p3, c.p4, c.nota_final
+        $notes_query = $conn->query("
+            SELECT m.id AS materia_id, m.nombre AS materia_nombre, c.competencia_id, c.p1, c.p2, c.p3, c.p4, c.nota_final, c.rec_final, c.rec_especial
             FROM calificaciones c
             INNER JOIN materias m ON c.materia_id = m.id
             WHERE c.grado_id = $grado_id AND c.anio_id = $anio_id AND c.estudiante_id = $estudiante_id
             ORDER BY m.nombre ASC
         ");
 
-        if($notas_query && $notas_query->num_rows > 0){
+        if($notes_query && $notes_query->num_rows > 0){
             $matriz = [];
-            while($n = $notas_query->fetch_assoc()){
+            while($n = $notes_query->fetch_assoc()){
                 $m_id = $n['materia_id'];
                 $comp_id = $n['competencia_id'];
                 if(!isset($matriz[$m_id])) {
-                    $matriz[$m_id] = ['nombre' => $n['materia_nombre'], 'competencias' => []];
+                    $matriz[$m_id] = [
+                        'nombre' => $n['materia_nombre'], 
+                        'competencias' => [],
+                        'rec_final' => null, 
+                        'rec_especial' => null 
+                    ];
                 }
+                
+                // CORRECCIÓN: Si la fila actual trae nota de recuperación, la guardamos
+                if (!style_null_or_empty($n['rec_final'])) {
+                    $matriz[$m_id]['rec_final'] = $n['rec_final'];
+                }
+                if (!style_null_or_empty($n['rec_especial'])) {
+                    $matriz[$m_id]['rec_especial'] = $n['rec_especial'];
+                }
+
                 $matriz[$m_id]['competencias'][$comp_id] = ['p1' => $n['p1'], 'p2' => $n['p2'], 'p3' => $n['p3'], 'p4' => $n['p4'], 'final' => $n['nota_final']];
             }
 ?>
@@ -204,6 +218,9 @@ if($grado_id > 0 && $anio_id > 0){
                                         <th colspan="4" class="fw-bold header-competencia"><?php echo htmlspecialchars($comp['nombre']); ?></th>
                                     <?php } ?>
                                     <th colspan="<?php echo count($lista_competencias); ?>" class="fw-bold bg-dark text-white header-final-title">Calificación final por competencia</th>
+                                    <th rowspan="2" class="fw-bold cell-nueva-columna">Calificación final del área</th>
+                                    <th rowspan="2" class="fw-bold cell-nueva-columna">Calificación recuperación final</th>
+                                    <th rowspan="2" class="fw-bold cell-nueva-columna">Calificación recuperación especial</th>
                                 </tr>
                                 <tr>
                                     <?php foreach($lista_competencias as $comp){ ?>
@@ -215,22 +232,40 @@ if($grado_id > 0 && $anio_id > 0){
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php foreach($matriz as $materia_id => $datos_materia){ ?>
+                                <?php foreach($matriz as $materia_id => $datos_materia){ 
+                                    $suma_finales = 0;
+                                    $conteo_competencias = 0;
+                                    foreach($lista_competencias as $comp){
+                                        $c_id = $comp['id'];
+                                        if(isset($datos_materia['competencias'][$c_id])) {
+                                            $suma_finales += $datos_materia['competencias'][$c_id]['final'];
+                                            $conteo_competencias++;
+                                        }
+                                    }
+                                    $calificacion_final_area = ($conteo_competencias > 0) ? round($suma_finales / $conteo_competencias) : 0;
+                                ?>
                                     <tr>
                                         <td class="text-start fw-bold text-dark cell-materia-name"><?php echo htmlspecialchars($datos_materia['nombre']); ?></td>
                                         <?php foreach($lista_competencias as $comp){ 
                                             $c_id = $comp['id'];
                                             $tiene_nota = isset($datos_materia['competencias'][$c_id]);
                                         ?>
-                                            <td class="cell-nota-valor"><?php echo $tiene_nota ? $datos_materia['competencias'][$c_id]['p1'] : '-'; ?></td>
-                                            <td class="cell-nota-valor"><?php echo $tiene_nota ? $datos_materia['competencias'][$c_id]['p2'] : '-'; ?></td>
-                                            <td class="cell-nota-valor"><?php echo $tiene_nota ? $datos_materia['competencias'][$c_id]['p3'] : '-'; ?></td>
-                                            <td class="cell-nota-valor"><?php echo $tiene_nota ? $datos_materia['competencias'][$c_id]['p4'] : '-'; ?></td>
+                                            <td class="cell-nota-valor"><?php echo $tiene_nota ? number_format($datos_materia['competencias'][$c_id]['p1'], 0) : '-'; ?></td>
+                                            <td class="cell-nota-valor"><?php echo $tiene_nota ? number_format($datos_materia['competencias'][$c_id]['p2'], 0) : '-'; ?></td>
+                                            <td class="cell-nota-valor"><?php echo $tiene_nota ? number_format($datos_materia['competencias'][$c_id]['p3'], 0) : '-'; ?></td>
+                                            <td class="cell-nota-valor"><?php echo $tiene_nota ? number_format($datos_materia['competencias'][$c_id]['p4'], 0) : '-'; ?></td>
                                         <?php } ?>
+                                        
                                         <?php foreach($lista_competencias as $comp){ 
                                             $c_id = $comp['id'];
-                                            echo '<td class="fw-bold text-dark cell-final-bg">' . (isset($datos_materia['competencias'][$c_id]) ? number_format($datos_materia['competencias'][$c_id]['final'], 0) : '-') . '</td>';
-                                        } ?>
+                                            $tiene_nota = isset($datos_materia['competencias'][$c_id]);
+                                        ?>
+                                            <td class="fw-bold text-dark cell-final-bg"><?php echo $tiene_nota ? number_format($datos_materia['competencias'][$c_id]['final'], 0) : '-'; ?></td>
+                                        <?php } ?>
+                                        
+                                        <td class="fw-bold cell-nueva-valor"><?php echo ($calificacion_final_area > 0) ? $calificacion_final_area : '-'; ?></td>
+                                        <td class="cell-nueva-valor fw-bold"><?php echo (!style_null_or_empty($datos_materia['rec_final'])) ? number_format($datos_materia['rec_final'], 0) : '-'; ?></td>
+                                        <td class="cell-nueva-valor fw-bold"><?php echo (!style_null_or_empty($datos_materia['rec_especial'])) ? number_format($datos_materia['rec_especial'], 0) : '-'; ?></td>
                                     </tr>
                                 <?php } ?>
                             </tbody>
@@ -250,7 +285,7 @@ if($grado_id > 0 && $anio_id > 0){
             $nombre_est_completo = $alumno['apellido'] . ", " . $alumno['nombre'];
 
             $notas_masivas = $conn->query("
-                SELECT m.id AS materia_id, m.nombre AS materia_nombre, c.competencia_id, c.p1, c.p2, c.p3, c.p4, c.nota_final
+                SELECT m.id AS materia_id, m.nombre AS materia_nombre, c.competencia_id, c.p1, c.p2, c.p3, c.p4, c.nota_final, c.rec_final, c.rec_especial
                 FROM calificaciones c
                 INNER JOIN materias m ON c.materia_id = m.id
                 WHERE c.grado_id = $grado_id AND c.anio_id = $anio_id AND c.estudiante_id = $id_est
@@ -263,8 +298,22 @@ if($grado_id > 0 && $anio_id > 0){
                     $m_id = $nm['materia_id'];
                     $comp_id = $nm['competencia_id'];
                     if(!isset($matriz_m[$m_id])) {
-                        $matriz_m[$m_id] = ['nombre' => $nm['materia_nombre'], 'competencias' => []];
+                        $matriz_m[$m_id] = [
+                            'nombre' => $nm['materia_nombre'], 
+                            'competencias' => [],
+                            'rec_final' => null,
+                            'rec_especial' => null
+                        ];
                     }
+
+                    // CORRECCIÓN TAMBIÉN AQUÍ: Capturar notas de recuperación en el bucle masivo
+                    if (!style_null_or_empty($nm['rec_final'])) {
+                        $matriz_m[$m_id]['rec_final'] = $nm['rec_final'];
+                    }
+                    if (!style_null_or_empty($nm['rec_especial'])) {
+                        $matriz_m[$m_id]['rec_especial'] = $nm['rec_especial'];
+                    }
+
                     $matriz_m[$m_id]['competencias'][$comp_id] = ['p1' => $nm['p1'], 'p2' => $nm['p2'], 'p3' => $nm['p3'], 'p4' => $nm['p4'], 'final' => $nm['nota_final']];
                 }
 ?>
@@ -286,6 +335,9 @@ if($grado_id > 0 && $anio_id > 0){
                                     <th colspan="4" class="fw-bold header-competencia"><?php echo htmlspecialchars($comp['nombre']); ?></th>
                                 <?php } ?>
                                 <th colspan="<?php echo count($lista_competencias); ?>" class="fw-bold bg-dark text-white header-final-title">Calificación final por competencia</th>
+                                <th rowspan="2" class="fw-bold cell-nueva-columna">Calificación final del área</th>
+                                <th rowspan="2" class="fw-bold cell-nueva-columna">Calificación recuperación final</th>
+                                <th rowspan="2" class="fw-bold cell-nueva-columna">Calificación recuperación especial</th>
                             </tr>
                             <tr>
                                 <?php foreach($lista_competencias as $comp){ ?>
@@ -297,22 +349,40 @@ if($grado_id > 0 && $anio_id > 0){
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach($matriz_m as $materia_id => $datos_materia){ ?>
+                            <?php foreach($matriz_m as $materia_id => $datos_materia){ 
+                                $suma_finales_m = 0;
+                                $conteo_competencias_m = 0;
+                                foreach($lista_competencias as $comp){
+                                    $c_id = $comp['id'];
+                                    if(isset($datos_materia['competencias'][$c_id])) {
+                                        $suma_finales_m += $datos_materia['competencias'][$c_id]['final'];
+                                        $conteo_competencias_m++;
+                                    }
+                                }
+                                $calificacion_final_area_m = ($conteo_competencias_m > 0) ? round($suma_finales_m / $conteo_competencias_m) : 0;
+                            ?>
                                 <tr>
                                     <td class="text-start fw-bold text-dark cell-materia-name"><?php echo htmlspecialchars($datos_materia['nombre']); ?></td>
                                     <?php foreach($lista_competencias as $comp){ 
                                         $c_id = $comp['id'];
                                         $tiene_nota = isset($datos_materia['competencias'][$c_id]);
                                     ?>
-                                        <td class="cell-nota-valor"><?php echo $tiene_nota ? $datos_materia['competencias'][$c_id]['p1'] : '-'; ?></td>
-                                        <td class="cell-nota-valor"><?php echo $tiene_nota ? $datos_materia['competencias'][$c_id]['p2'] : '-'; ?></td>
-                                        <td class="cell-nota-valor"><?php echo $tiene_nota ? $datos_materia['competencias'][$c_id]['p3'] : '-'; ?></td>
-                                        <td class="cell-nota-valor"><?php echo $tiene_nota ? $datos_materia['competencias'][$c_id]['p4'] : '-'; ?></td>
+                                        <td class="cell-nota-valor"><?php echo $tiene_nota ? number_format($datos_materia['competencias'][$c_id]['p1'], 0) : '-'; ?></td>
+                                        <td class="cell-nota-valor"><?php echo $tiene_nota ? number_format($datos_materia['competencias'][$c_id]['p2'], 0) : '-'; ?></td>
+                                        <td class="cell-nota-valor"><?php echo $tiene_nota ? number_format($datos_materia['competencias'][$c_id]['p3'], 0) : '-'; ?></td>
+                                        <td class="cell-nota-valor"><?php echo $tiene_nota ? number_format($datos_materia['competencias'][$c_id]['p4'], 0) : '-'; ?></td>
                                     <?php } ?>
+                                    
                                     <?php foreach($lista_competencias as $comp){ 
                                         $c_id = $comp['id'];
-                                        echo '<td class="fw-bold text-dark cell-final-bg">' . (isset($datos_materia['competencias'][$c_id]) ? number_format($datos_materia['competencias'][$c_id]['final'], 0) : '-') . '</td>';
-                                    } ?>
+                                        $tiene_nota = isset($datos_materia['competencias'][$c_id]);
+                                    ?>
+                                        <td class="fw-bold text-dark cell-final-bg"><?php echo $tiene_nota ? number_format($datos_materia['competencias'][$c_id]['final'], 0) : '-'; ?></td>
+                                    <?php } ?>
+                                    
+                                    <td class="fw-bold cell-nueva-valor"><?php echo ($calificacion_final_area_m > 0) ? $calificacion_final_area_m : '-'; ?></td>
+                                    <td class="cell-nueva-valor fw-bold"><?php echo (!style_null_or_empty($datos_materia['rec_final'])) ? number_format($datos_materia['rec_final'], 0) : '-'; ?></td>
+                                    <td class="cell-nueva-valor fw-bold"><?php echo (!style_null_or_empty($datos_materia['rec_especial'])) ? number_format($datos_materia['rec_especial'], 0) : '-'; ?></td>
                                 </tr>
                             <?php } ?>
                         </tbody>
@@ -324,6 +394,11 @@ if($grado_id > 0 && $anio_id > 0){
         echo '</div>';
     }
 }
+
+// Función auxiliar para comprobar si un registro de nota es nulo o vacío
+function style_null_or_empty($value) {
+    return ($value === null || $value === '' || $value === 'NULL');
+}
 ?>
 </div>
 
@@ -331,10 +406,11 @@ if($grado_id > 0 && $anio_id > 0){
 .s-tabla-reporte th, .s-tabla-reporte td { vertical-align: middle !important; border: 1px solid #cbd5e1 !important; }
 .header-competencia { background-color: #fdebd0 !important; font-size: 0.8rem; }
 .cell-materia-title { background-color: #f5eeeb !important; font-size: 0.8rem; }
+.cell-nueva-columna { background-color: #f9d5e5 !important; color: #000 !important; font-size: 0.75rem; max-width: 90px; }
+.cell-nueva-valor { background-color: #fdf2f7 !important; font-size: 0.8rem; }
 </style>
 
 <script>
-// SCRIPT NUEVO: FILTRADO EN TIEMPO REAL SIN RECARGAR PÁGINA
 document.getElementById('buscadorEstudiantes').addEventListener('keyup', function() {
     var valorBusqueda = this.value.toLowerCase().trim();
     var filas = document.querySelectorAll('#tablaEstudiantes tr');
@@ -343,7 +419,6 @@ document.getElementById('buscadorEstudiantes').addEventListener('keyup', functio
         var celdaNombre = filas.querySelector('.nombre-estudiante');
         if (celdaNombre) {
             var textoNombre = celdaNombre.textContent.toLowerCase();
-            // Si el texto coincide, se muestra la fila; si no, se oculta
             if (textoNombre.indexOf(valorBusqueda) > -1) {
                 filas.style.display = '';
             } else {
@@ -353,13 +428,11 @@ document.getElementById('buscadorEstudiantes').addEventListener('keyup', functio
     });
 });
 
-// FUNCIÓN: IMPRIMIR UN SOLO ESTUDIANTE SELECCIONADO
 function imprimirReporteHorizontal() {
     var contenido = document.getElementById('area-reporte-sabana').innerHTML;
     ejecutarImpresionLimpia(contenido);
 }
 
-// FUNCIÓN: IMPRIMIR LAS HOJAS DE TODOS LOS ESTUDIANTES AL TIEMPO
 function imprimirTodosLosReportes() {
     var contenedorMasivo = document.getElementById('contenedor-impresion-masiva');
     if (!contenedorMasivo || contenedorMasivo.innerHTML.trim() == "") {
@@ -370,27 +443,30 @@ function imprimirTodosLosReportes() {
     ejecutarImpresionLimpia(contenido);
 }
 
-// MOTOR DE INYECCIÓN DE ESTILOS E IMPRESIÓN COMODA Y GRANDE
 function ejecutarImpresionLimpia(htmlContent) {
     var ventanaImpresion = window.open('', '_blank', 'height=800,width=1250');
     ventanaImpresion.document.write('<html><head><title>Impresión de Registro de Calificaciones</title>');
     ventanaImpresion.document.write('<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">');
     
     ventanaImpresion.document.write('<style>');
-    ventanaImpresion.document.write('@page { size: letter landscape; margin: 0.5cm 0.6cm; }');
+    ventanaImpresion.document.write('@page { size: letter landscape; margin: 0.4cm 0.5cm; }');
     ventanaImpresion.document.write('body { background: #fff !important; color: #000 !important; font-family: Arial, sans-serif; padding: 5px; }');
-    ventanaImpresion.document.write('.s-tabla-reporte { width: 100% !important; font-size: 10px !important; border-collapse: collapse !important; margin-top: 10px !important; margin-bottom: 25px !important; page-break-inside: avoid; }');
-    ventanaImpresion.document.write('.s-tabla-reporte th, .s-tabla-reporte td { padding: 5px 3px !important; border: 1.5px solid #222 !important; text-align: center !important; vertical-align: middle !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }');
-    ventanaImpresion.document.write('.cell-materia-title { background-color: #f5eeeb !important; font-size: 9.5px !important; font-weight: bold !important; width: 160px !important; }');
-    ventanaImpresion.document.write('.header-competencia { background-color: #fdebd0 !important; font-size: 9.5px !important; font-weight: bold !important; color: #111 !important; }');
-    ventanaImpresion.document.write('.cell-materia-name { font-size: 10px !important; text-align: left !important; padding-left: 8px !important; font-weight: bold !important; white-space: nowrap !important; }');
-    ventanaImpresion.document.write('.cell-periodo { font-size: 8.5px !important; width: 25px !important; font-weight: bold !important; background-color: #fff !important; }');
-    ventanaImpresion.document.write('.cell-nota-valor { font-size: 10px !important; width: 25px !important; }');
-    ventanaImpresion.document.write('.header-final-title { background-color: #e5e7eb !important; color: #000 !important; font-size: 9.5px !important; font-weight: bold !important; }');
-    ventanaImpresion.document.write('.cell-c-final { background-color: #f3f4f6 !important; color: #000 !important; font-size: 8.5px !important; width: 30px !important; font-weight: bold !important; }');
-    ventanaImpresion.document.write('.cell-final-bg { background-color: #f9fafb !important; width: 30px !important; font-size: 10px !important; font-weight: bold !important; }');
+    ventanaImpresion.document.write('.s-tabla-reporte { width: 100% !important; font-size: 9px !important; border-collapse: collapse !important; margin-top: 10px !important; margin-bottom: 25px !important; page-break-inside: avoid; }');
+    ventanaImpresion.document.write('.s-tabla-reporte th, .s-tabla-reporte td { padding: 4px 2px !important; border: 1.5px solid #222 !important; text-align: center !important; vertical-align: middle !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }');
+    ventanaImpresion.document.write('.cell-materia-title { background-color: #f5eeeb !important; font-size: 9px !important; font-weight: bold !important; width: 140px !important; }');
+    ventanaImpresion.document.write('.header-competencia { background-color: #fdebd0 !important; font-size: 9px !important; font-weight: bold !important; color: #111 !important; }');
+    ventanaImpresion.document.write('.cell-materia-name { font-size: 9.5px !important; text-align: left !important; padding-left: 6px !important; font-weight: bold !important; white-space: nowrap !important; }');
+    ventanaImpresion.document.write('.cell-periodo { font-size: 8px !important; width: 22px !important; font-weight: bold !important; background-color: #fff !important; }');
+    ventanaImpresion.document.write('.cell-nota-valor { font-size: 9px !important; width: 22px !important; }');
+    ventanaImpresion.document.write('.header-final-title { background-color: #e5e7eb !important; color: #000 !important; font-size: 9px !important; font-weight: bold !important; }');
+    ventanaImpresion.document.write('.cell-c-final { background-color: #f3f4f6 !important; color: #000 !important; font-size: 8px !important; width: 26px !important; font-weight: bold !important; }');
+    ventanaImpresion.document.write('.cell-final-bg { background-color: #f9fafb !important; width: 26px !important; font-size: 9px !important; font-weight: bold !important; }');
+    
+    ventanaImpresion.document.write('.cell-nueva-columna { background-color: #f5b7b1 !important; color: #000 !important; font-size: 8.5px !important; font-weight: bold !important; width: 65px !important; word-wrap: break-word !important; }');
+    ventanaImpresion.document.write('.cell-nueva-valor { background-color: #fff !important; font-size: 9.5px !important; width: 65px !important; }');
+    
     ventanaImpresion.document.write('.bloque-boleta-individual { page-break-after: always !important; break-after: page !important; }');
-    ventanaImpresion.document.write('</style>');
+    ventanaImpresion.document.write('<' + '/style>'); // Corregido el cierre de etiqueta style para evitar conflictos
     
     ventanaImpresion.document.write('</head><body>');
     ventanaImpresion.document.write(htmlContent);

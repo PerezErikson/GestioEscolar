@@ -7,72 +7,108 @@ $tipo_mensaje = "";
 // Capturamos las variables por GET o POST de forma segura
 $anio_id = isset($_REQUEST['anio_id']) ? intval($_REQUEST['anio_id']) : 0;
 $grado_id = isset($_REQUEST['grado_id']) ? intval($_REQUEST['grado_id']) : 0;
-$competencia_id = isset($_REQUEST['competencia_id']) ? intval($_REQUEST['competencia_id']) : 0;
+// Aquí competencia_id puede recibir un ID numérico o los textos "rec_final" / "rec_especial"
+$competencia_id = isset($_REQUEST['competencia_id']) ? $_REQUEST['competencia_id'] : '0';
 $estudiante_id = isset($_GET['estudiante_id']) ? intval($_GET['estudiante_id']) : 0;
 
 /* =====================================
-   GUARDAR CALIFICACIONES
+   GUARDAR CALIFICACIONES (CORREGIDO)
 ===================================== */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_calificaciones'])) {
 
     $grado_id = intval($_POST['grado_id']);
     $estudiante_id = intval($_POST['estudiante_id']);
     $anio_id = intval($_POST['anio_id']); 
-    $competencia_id = intval($_POST['competencia_id']); 
+    $competencia_id = $_POST['competencia_id']; // Puede ser ID entero o string ("rec_final"/"rec_especial")
 
     foreach ($_POST['materia_id'] as $i => $materia_id) {
 
         $materia_id = intval($materia_id);
 
-        $p1 = floatval($_POST['p1'][$i]);
-        $p2 = floatval($_POST['p2'][$i]);
-        $p3 = floatval($_POST['p3'][$i]);
-        $p4 = floatval($_POST['p4'][$i]);
+        // Valores por defecto
+        $p1 = 0; $p2 = 0; $p3 = 0; $p4 = 0; $nota_final = 0;
+        $rec_final = null; $rec_especial = null;
+        $comp_db_id = is_numeric($competencia_id) ? intval($competencia_id) : 0;
 
-        $nota_final = ($p1 + $p2 + $p3 + $p4) / 4;
+        // Si es una competencia normal, capturamos P1-P4
+        if (is_numeric($competencia_id)) {
+            $p1 = floatval($_POST['p1'][$i]);
+            $p2 = floatval($_POST['p2'][$i]);
+            $p3 = floatval($_POST['p3'][$i]);
+            $p4 = floatval($_POST['p4'][$i]);
+            $nota_final = ($p1 + $p2 + $p3 + $p4) / 4;
+        } 
+        // Si se seleccionó "Calificación recuperación final"
+        elseif ($competencia_id === 'rec_final') {
+            $rec_final = isset($_POST['nota_rec_final'][$i]) && $_POST['nota_rec_final'][$i] !== '' ? intval($_POST['nota_rec_final'][$i]) : null;
+        } 
+        // Si se seleccionó "Calificación recuperación especial"
+        elseif ($competencia_id === 'rec_especial') {
+            $rec_especial = isset($_POST['nota_rec_especial'][$i]) && $_POST['nota_rec_especial'][$i] !== '' ? intval($_POST['nota_rec_especial'][$i]) : null;
+        }
 
-        // Verificar si ya existe registro previo
+        // Verificar si ya existe registro previo para este estudiante, materia, año y la competencia base (0 para recuperaciones)
         $check = $conn->prepare("
-            SELECT id
+            SELECT id, p1, p2, p3, p4, nota_final, rec_final, rec_especial
             FROM calificaciones
             WHERE estudiante_id = ?
             AND materia_id = ?
             AND anio_id = ?
             AND competencia_id = ?
         ");
-
-        $check->bind_param("iiii", $estudiante_id, $materia_id, $anio_id, $competencia_id);
+        $check->bind_param("iiii", $estudiante_id, $materia_id, $anio_id, $comp_db_id);
         $check->execute();
         $resultado = $check->get_result();
 
         if ($resultado->num_rows > 0) {
             $fila = $resultado->fetch_assoc();
 
+            // Si es recuperación, mantenemos los valores previos de P1-P4 para no borrarlos
+            if (!is_numeric($competencia_id)) {
+                $p1 = $fila['p1']; 
+                $p2 = $fila['p2']; 
+                $p3 = $fila['p3']; 
+                $p4 = $fila['p4']; 
+                $nota_final = $fila['nota_final'];
+                
+                if ($competencia_id === 'rec_final') {
+                    $rec_especial = $fila['rec_especial']; // Mantiene la especial si existía
+                }
+                if ($competencia_id === 'rec_especial') {
+                    $rec_final = $fila['rec_final']; // Mantiene la final si existía
+                }
+            } else {
+                // Si es competencia normal, mantenemos las recuperaciones previas
+                $rec_final = $fila['rec_final'];
+                $rec_especial = $fila['rec_especial'];
+            }
+
             $update = $conn->prepare("
                 UPDATE calificaciones
-                SET p1=?, p2=?, p3=?, p4=?, nota_final=?
+                SET p1=?, p2=?, p3=?, p4=?, nota_final=?, rec_final=?, rec_especial=?
                 WHERE id=?
             ");
-            $update->bind_param("dddddi", $p1, $p2, $p3, $p4, $nota_final, $fila['id']);
+            $update->bind_param("dddddiii", $p1, $p2, $p3, $p4, $nota_final, $rec_final, $rec_especial, $fila['id']);
             $update->execute();
 
         } else {
+            // Registro nuevo
             $insert = $conn->prepare("
                 INSERT INTO calificaciones
-                (estudiante_id, grado_id, materia_id, anio_id, competencia_id, p1, p2, p3, p4, nota_final)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                (estudiante_id, grado_id, materia_id, anio_id, competencia_id, p1, p2, p3, p4, nota_final, rec_final, rec_especial)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ");
-            $insert->bind_param("iiiiiddddd", $estudiante_id, $grado_id, $materia_id, $anio_id, $competencia_id, $p1, $p2, $p3, $p4, $nota_final);
+            $insert->bind_param("iiiiidddddii", $estudiante_id, $grado_id, $materia_id, $anio_id, $comp_db_id, $p1, $p2, $p3, $p4, $nota_final, $rec_final, $rec_especial);
             $insert->execute();
         }
     }
 
-    $mensaje = "✅ Calificaciones guardadas correctamente para la competencia seleccionada.";
+    $mensaje = "✅ Calificaciones guardadas correctamente de manera exitosa.";
     $tipo_mensaje = "success";
 }
 
 /* =====================================
-   OBTENER GRADOS Y AÑOS (Filtros superiores)
+   OBTENER GRADOS Y AÑOS
 ===================================== */
 $grados = $conn->query("
     SELECT g.id, CONCAT(g.nombre,' ',s.nombre) AS grado
@@ -83,7 +119,6 @@ $grados = $conn->query("
 $anos_escolares = $conn->query("SELECT id, nombre FROM anio_escolar ORDER BY nombre DESC");
 $competencias = $conn->query("SELECT id, nombre FROM competencias ORDER BY nombre ASC");
 
-
 /* =====================================
    LÓGICA DE DETECCIÓN Y ALERTAS
 ===================================== */
@@ -93,11 +128,9 @@ $total_estudiantes = 0;
 $total_materias = 0;
 
 if ($grado_id > 0) {
-    // 1. Validar si hay estudiantes
     $estudiantes = $conn->query("SELECT numero, nombre, apellido FROM estudiantes WHERE grado_id = $grado_id ORDER BY apellido, nombre");
     $total_estudiantes = $estudiantes->num_rows;
 
-    // 2. Validar si hay materias asignadas
     $materias = $conn->query("
         SELECT m.id, m.nombre
         FROM asignacion_materias am
@@ -158,11 +191,17 @@ if ($grado_id > 0) {
                 <label class="form-label fw-semibold">Competencia</label>
                 <select name="competencia_id" class="form-select" required>
                     <option value="">-- Seleccione Competencia --</option>
+                    
+                    <!-- Opciones Normales de la Base de Datos -->
                     <?php while($c = $competencias->fetch_assoc()){ ?>
                         <option value="<?php echo $c['id']; ?>" <?php echo ($competencia_id == $c['id']) ? 'selected' : ''; ?>>
                             <?php echo htmlspecialchars($c['nombre']); ?>
                         </option>
                     <?php } ?>
+                    
+                    <!-- NUEVAS OPCIONES AGREGADAS DIRECTAMENTE AL DESPLEGABLE -->
+                    <option value="rec_final" <?php echo ($competencia_id === 'rec_final') ? 'selected' : ''; ?>>Calificación recuperación final</option>
+                    <option value="rec_especial" <?php echo ($competencia_id === 'rec_especial') ? 'selected' : ''; ?>>Calificación recuperación especial</option>
                 </select>
             </div>
 
@@ -174,7 +213,7 @@ if ($grado_id > 0) {
         </form>
     </div>
 
-    <?php if ($grado_id > 0 && $competencia_id > 0): ?>
+    <?php if ($grado_id > 0 && $competencia_id !== '0'): ?>
         
         <?php if ($total_estudiantes === 0): ?>
             <div class="alert alert-warning border-0 shadow-sm rounded-4 p-4 d-flex align-items-center gap-3">
@@ -190,7 +229,7 @@ if ($grado_id > 0) {
                 <i class="bi bi-x-circle-fill text-danger fs-1"></i>
                 <div>
                     <h5 class="alert-heading fw-bold mb-1">Sin Materias Asignadas</h5>
-                    <p class="m-0 text-secondary">Este grado no cuenta con materias asignadas todavía. Por favor, ve al módulo de administración e instrumenta las asignaciones de asignaturas.</p>
+                    <p class="m-0 text-secondary">Este grado no cuenta con materias asignadas todavía.</p>
                 </div>
             </div>
 
@@ -230,10 +269,18 @@ if ($grado_id > 0) {
                             <thead class="table-primary text-center">
                                 <tr>
                                     <th class="text-start" style="width: 40%;">Materia</th>
-                                    <th>P1</th>
-                                    <th>P2</th>
-                                    <th>P3</th>
-                                    <th>P4</th>
+                                    
+                                    <!-- Cabeceras cambiantes según la opción seleccionada en el desplegable -->
+                                    <?php if ($competencia_id === 'rec_final'){ ?>
+                                        <th>Calificación recuperación final</th>
+                                    <?php } elseif ($competencia_id === 'rec_especial'){ ?>
+                                        <th>Calificación recuperación especial</th>
+                                    <?php } else { ?>
+                                        <th>P1</th>
+                                        <th>P2</th>
+                                        <th>P3</th>
+                                        <th>P4</th>
+                                    <?php } ?>
                                 </tr>
                             </thead>
                             <tbody>
@@ -241,16 +288,19 @@ if ($grado_id > 0) {
                             $materias->data_seek(0);
                             while($m = $materias->fetch_assoc()){ 
                                 $m_id = $m['id'];
+                                $comp_db_id = is_numeric($competencia_id) ? intval($competencia_id) : 0;
                                 
-                                // PRECARGA DE CALIFICACIONES DE LA BASE DE DATOS
                                 $p1_val = 0; $p2_val = 0; $p3_val = 0; $p4_val = 0;
+                                $rec_final_val = ""; $rec_especial_val = "";
+                                
+                                // Consulta Corregida: Busca bajo el ID de competencia numérico o 0 para recuperaciones
                                 $buscar_nota = $conn->query("
-                                    SELECT p1, p2, p3, p4 
+                                    SELECT p1, p2, p3, p4, rec_final, rec_especial 
                                     FROM calificaciones 
                                     WHERE estudiante_id = $estudiante_id 
                                     AND materia_id = $m_id 
                                     AND anio_id = $anio_id 
-                                    AND competencia_id = $competencia_id
+                                    AND competencia_id = $comp_db_id
                                     LIMIT 1
                                 ");
                                 if($nota_row = $buscar_nota->fetch_assoc()){
@@ -258,6 +308,8 @@ if ($grado_id > 0) {
                                     $p2_val = $nota_row['p2'];
                                     $p3_val = $nota_row['p3'];
                                     $p4_val = $nota_row['p4'];
+                                    $rec_final_val = $nota_row['rec_final'] !== null ? $nota_row['rec_final'] : "";
+                                    $rec_especial_val = $nota_row['rec_especial'] !== null ? $nota_row['rec_especial'] : "";
                                 }
                             ?>
                                 <tr>
@@ -265,18 +317,30 @@ if ($grado_id > 0) {
                                         <?php echo htmlspecialchars($m['nombre']); ?>
                                         <input type="hidden" name="materia_id[]" value="<?php echo $m['id']; ?>">
                                     </td>
-                                    <td>
-                                        <input type="number" name="p1[]" class="form-control text-center" min="0" max="100" step="0.01" value="<?php echo $p1_val; ?>" required>
-                                    </td>
-                                    <td>
-                                        <input type="number" name="p2[]" class="form-control text-center" min="0" max="100" step="0.01" value="<?php echo $p2_val; ?>" required>
-                                    </td>
-                                    <td>
-                                        <input type="number" name="p3[]" class="form-control text-center" min="0" max="100" step="0.01" value="<?php echo $p3_val; ?>" required>
-                                    </td>
-                                    <td>
-                                        <input type="number" name="p4[]" class="form-control text-center" min="0" max="100" step="0.01" value="<?php echo $p4_val; ?>" required>
-                                    </td>
+                                    
+                                    <!-- Renderizado alternativo según la opción del desplegable -->
+                                    <?php if ($competencia_id === 'rec_final'){ ?>
+                                        <td>
+                                            <input type="number" name="nota_rec_final[]" class="form-control text-center" min="0" max="100" value="<?php echo $rec_final_val; ?>">
+                                        </td>
+                                    <?php } elseif ($competencia_id === 'rec_especial'){ ?>
+                                        <td>
+                                            <input type="number" name="nota_rec_especial[]" class="form-control text-center" min="0" max="100" value="<?php echo $rec_especial_val; ?>">
+                                        </td>
+                                    <?php } else { ?>
+                                        <td>
+                                            <input type="number" name="p1[]" class="form-control text-center" min="0" max="100" step="0.01" value="<?php echo $p1_val; ?>" required>
+                                        </td>
+                                        <td>
+                                            <input type="number" name="p2[]" class="form-control text-center" min="0" max="100" step="0.01" value="<?php echo $p2_val; ?>" required>
+                                        </td>
+                                        <td>
+                                            <input type="number" name="p3[]" class="form-control text-center" min="0" max="100" step="0.01" value="<?php echo $p3_val; ?>" required>
+                                        </td>
+                                        <td>
+                                            <input type="number" name="p4[]" class="form-control text-center" min="0" max="100" step="0.01" value="<?php echo $p4_val; ?>" required>
+                                        </td>
+                                    <?php } ?>
                                 </tr>
                             <?php } ?>
                             </tbody>
@@ -298,8 +362,7 @@ if ($grado_id > 0) {
                                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                                 </div>
                                 <div class="modal-body text-center py-4">
-                                    <h5 class="text-secondary">¿Desea guardar las calificaciones para esta competencia?</h5>
-                                    <p class="text-muted small">Los promedios finales se recalcularán automáticamente.</p>
+                                    <h5 class="text-secondary">¿Desea guardar las calificaciones para esta opción?</h5>
                                 </div>
                                 <div class="modal-footer bg-light">
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>

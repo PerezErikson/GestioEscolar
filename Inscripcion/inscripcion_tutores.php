@@ -23,7 +23,7 @@ if (
     $telefono = trim($_POST['telefono']);
     $direccion = trim($_POST['direccion']);
     $nacionalidad = trim($_POST['nacionalidad']);
-    $parentesco = trim($_POST['parentesco']);
+    $ocupacion = trim($_POST['ocupacion']); // <-- Nueva variable
     $estado_civil = trim($_POST['estado_civil']);
     $nivel_academico = trim($_POST['nivel_academico']);
 
@@ -61,7 +61,7 @@ if (
                 direccion,
                 tipo_responsable,
                 nacionalidad,
-                parentesco,
+                ocupacion, -- <-- Nuevo campo
                 estado_civil,
                 nivel_academico
             )
@@ -70,6 +70,7 @@ if (
 
         $tipo_responsable = $tipo;
 
+        // Se ajustó a 10 "s" y se agregó $ocupacion
         $stmt->bind_param(
             "ssssssssss",
             $tipo,
@@ -79,7 +80,7 @@ if (
             $direccion,
             $tipo_responsable,
             $nacionalidad,
-            $parentesco,
+            $ocupacion,
             $estado_civil,
             $nivel_academico
         );
@@ -104,15 +105,11 @@ if (
 
 <div class="container mt-4">
 
-    <!-- TITULO -->
     <h3 class="mb-4 text-primary fw-bold">
-
         <i class="bi bi-people-fill"></i>
         Registro de Padres / Madres / Tutores
-
     </h3>
 
-    <!-- MENSAJES -->
     <?php if (!empty($mensaje)) { ?>
 
         <div class="alert alert-<?php echo $tipo_mensaje; ?> alert-dismissible fade show border-0 shadow rounded-4 d-flex align-items-center gap-3 p-3 mb-4">
@@ -132,14 +129,11 @@ if (
 
     <?php } ?>
 
-    <!-- FORMULARIO -->
     <div class="card border-0 shadow-lg rounded-4 p-4 mb-4">
 
         <h5 class="mb-4 fw-semibold">
-
             <i class="bi bi-person-vcard-fill"></i>
             Registrar Responsable
-
         </h5>
 
         <form method="POST" class="row g-3">
@@ -148,7 +142,6 @@ if (
                    name="accion"
                    value="guardar">
 
-            <!-- TIPO -->
             <div class="col-12">
 
                 <label class="form-label fw-bold">
@@ -157,7 +150,6 @@ if (
 
                 <div class="row g-3 mt-1">
 
-                    <!-- PADRE -->
                     <div class="col-md-4">
 
                         <input type="radio"
@@ -181,7 +173,6 @@ if (
 
                     </div>
 
-                    <!-- MADRE -->
                     <div class="col-md-4">
 
                         <input type="radio"
@@ -204,7 +195,6 @@ if (
 
                     </div>
 
-                    <!-- TUTOR -->
                     <div class="col-md-4">
 
                         <input type="radio"
@@ -231,7 +221,6 @@ if (
 
             </div>
 
-            <!-- NOMBRE -->
             <div class="col-md-6">
 
                 <label class="form-label fw-semibold">
@@ -245,7 +234,6 @@ if (
 
             </div>
 
-            <!-- CEDULA -->
             <div class="col-md-6">
 
                 <label class="form-label fw-semibold">
@@ -263,7 +251,6 @@ if (
 
             </div>
 
-            <!-- TELEFONO -->
             <div class="col-md-6">
 
                 <label class="form-label fw-semibold">
@@ -277,7 +264,19 @@ if (
 
             </div>
 
-            <!-- NACIONALIDAD -->
+            <div class="col-md-6">
+
+                <label class="form-label fw-semibold">
+                    Dirección
+                </label>
+
+                <input type="text"
+                       name="direccion"
+                       class="form-control rounded-3"
+                       required>
+
+            </div>
+
             <div class="col-md-6">
 
                 <label class="form-label fw-semibold">
@@ -291,44 +290,20 @@ if (
 
             </div>
 
-            <!-- DIRECCION -->
-            <div class="col-12">
+            <div class="col-md-6">
 
                 <label class="form-label fw-semibold">
-                    Dirección
+                    Ocupación
                 </label>
 
                 <input type="text"
-                       name="direccion"
+                       name="ocupacion"
                        class="form-control rounded-3"
                        required>
 
             </div>
 
-            <!-- PARENTESCO -->
-            <div class="col-md-4">
-
-                <label class="form-label fw-semibold">
-                    Parentesco
-                </label>
-
-                <select name="parentesco"
-                        class="form-select rounded-3"
-                        required>
-
-                    <option value="">Seleccione</option>
-                    <option value="Padre">Padre</option>
-                    <option value="Madre">Madre</option>
-                    <option value="Tutor">Tutor</option>
-                    <option value="Abuelo">Abuelo</option>
-                    <option value="Abuela">Abuela</option>
-
-                </select>
-
-            </div>
-
-            <!-- ESTADO CIVIL -->
-            <div class="col-md-4">
+            <div class="col-md-6">
 
                 <label class="form-label fw-semibold">
                     Estado Civil
@@ -348,8 +323,7 @@ if (
 
             </div>
 
-            <!-- NIVEL -->
-            <div class="col-md-4">
+            <div class="col-md-6">
 
                 <label class="form-label fw-semibold">
                     Nivel Académico
@@ -368,7 +342,6 @@ if (
 
             </div>
 
-            <!-- BOTON -->
             <div class="col-12 text-end mt-4">
 
                 <button type="submit"
@@ -387,12 +360,9 @@ if (
 
 </div>
 
-<!-- BOOTSTRAP -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- FORMATO AUTOMATICO CEDULA -->
 <script>
-
 document.getElementById('cedula').addEventListener('input', function (e) {
 
     let valor = e.target.value.replace(/\D/g, '');
@@ -412,25 +382,15 @@ document.getElementById('cedula').addEventListener('input', function (e) {
     }
 
     e.target.value = valor;
-
 });
-
 </script>
 
-<!-- AUTO CERRAR ALERTAS -->
 <script>
-
 setTimeout(() => {
-
     let alerta = document.querySelector('.alert');
-
     if(alerta){
-
         let bsAlert = new bootstrap.Alert(alerta);
-
         bsAlert.close();
     }
-
 }, 5000);
-
 </script>

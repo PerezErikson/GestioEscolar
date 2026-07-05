@@ -4,6 +4,13 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+// FUNCIÓN AUXILIAR (Definida al inicio para evitar errores de orden de carga "undefined function")
+if (!function_exists('hist_null_or_empty')) {
+    function hist_null_or_empty($value) {
+        return ($value === null || $value === '' || $value === 'NULL');
+    }
+}
+
 include("conexion/conexion.php");
 
 // Solo capturamos el estudiante_id seleccionado
@@ -39,7 +46,7 @@ $estudiantes = $conn->query("
         Record de Notas Histórico
     </h3>
 
-    <!-- BLOQUE: LISTA DIRECTA DE ESTUDIANTES (Como en la imagen image_8d5962.png) -->
+    <!-- BLOQUE: LISTA DIRECTA DE ESTUDIANTES -->
     <div class="card border-0 shadow-lg rounded-4 mb-4">
         <div class="card-body">
             <h5 class="fw-bold text-secondary mb-3">
@@ -125,10 +132,10 @@ $estudiantes = $conn->query("
                 <div class="card-body p-4">
                     
                     <!-- Encabezado de Impresión -->
-                    <div class="text-center mb-4">
-                        <h3 class="fw-bold mb-1 text-uppercase text-dark">Centro Educativo Pozo De Bejuco</h3>
+                    <div class="text-center mb-4 header-print-sabana">
+                        <h3 class="fw-bold mb-1 text-uppercase text-dark" style="font-size: 20px;">Centro Educativo Pozo De Bejuco</h3>
                         <h4 class="fw-semibold mb-3 text-secondary" style="font-size: 14px;">RECORD DE NOTAS ACUMULATIVO POR COMPETENCIAS</h4>
-                        <div class="row text-start px-md-5 mt-3" style="font-size: 13px;">
+                        <div class="row text-start px-md-5 mt-3 label-container-info" style="font-size: 13px;">
                             <div class="col-8"><strong>ESTUDIANTE:</strong> <span class="text-uppercase border-bottom border-secondary pb-1 ps-2 d-inline-block w-75"><?php echo htmlspecialchars($nombre_completo_est); ?></span></div>
                             <div class="col-4 text-end"><strong>ID / No:</strong> <span class="border-bottom border-secondary pb-1 px-2"><?php echo $estudiante_id; ?></span></div>
                         </div>
@@ -139,8 +146,9 @@ $estudiantes = $conn->query("
                         $curr_anio_id = $periodo['anio_id'];
                         $curr_grado_id = $periodo['grado_id'];
                         
+                        // Traemos adicionalmente rec_final y rec_especial
                         $notas_query = $conn->query("
-                            SELECT m.id AS materia_id, m.nombre AS materia_nombre, c.competencia_id, c.p1, c.p2, c.p3, c.p4, c.nota_final
+                            SELECT m.id AS materia_id, m.nombre AS materia_nombre, c.competencia_id, c.p1, c.p2, c.p3, c.p4, c.nota_final, c.rec_final, c.rec_especial
                             FROM calificaciones c
                             INNER JOIN materias m ON c.materia_id = m.id
                             WHERE c.estudiante_id = $estudiante_id AND c.anio_id = $curr_anio_id AND c.grado_id = $curr_grado_id
@@ -152,8 +160,22 @@ $estudiantes = $conn->query("
                             $m_id = $n['materia_id'];
                             $comp_id = $n['competencia_id'];
                             if (!isset($matriz[$m_id])) {
-                                $matriz[$m_id] = ['nombre' => $n['materia_nombre'], 'competencias' => []];
+                                $matriz[$m_id] = [
+                                    'nombre' => $n['materia_nombre'], 
+                                    'competencias' => [],
+                                    'rec_final' => null,
+                                    'rec_especial' => null
+                                ];
                             }
+                            
+                            // Guardado persistente de las recuperaciones por fila
+                            if (!hist_null_or_empty($n['rec_final'])) {
+                                $matriz[$m_id]['rec_final'] = $n['rec_final'];
+                            }
+                            if (!hist_null_or_empty($n['rec_especial'])) {
+                                $matriz[$m_id]['rec_especial'] = $n['rec_especial'];
+                            }
+
                             $matriz[$m_id]['competencias'][$comp_id] = [
                                 'p1' => $n['p1'], 'p2' => $n['p2'], 'p3' => $n['p3'], 'p4' => $n['p4'], 'final' => $n['nota_final']
                             ];
@@ -175,7 +197,10 @@ $estudiantes = $conn->query("
                                             <?php foreach($lista_competencias as $comp){ ?>
                                                 <th colspan="4" class="fw-bold header-competencia text-wrap" style="max-width: 150px; font-size: 11px;"><?php echo htmlspecialchars($comp['nombre']); ?></th>
                                             <?php } ?>
-                                            <th colspan="<?php echo count($lista_competencias); ?>" class="fw-bold bg-dark text-white">Calificación Final</th>
+                                            <th colspan="<?php echo count($lista_competencias); ?>" class="fw-bold bg-dark text-white header-final-title">Calificación final por competencia</th>
+                                            <th rowspan="2" class="fw-bold cell-nueva-columna">Calificación final del área</th>
+                                            <th rowspan="2" class="fw-bold cell-nueva-columna">Calificación recuperación final</th>
+                                            <th rowspan="2" class="fw-bold cell-nueva-columna">Calificación recuperación especial</th>
                                         </tr>
                                         <tr>
                                             <?php foreach($lista_competencias as $comp){ ?>
@@ -187,22 +212,40 @@ $estudiantes = $conn->query("
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <?php foreach($matriz as $materia_id => $datos_materia){ ?>
+                                        <?php foreach($matriz as $materia_id => $datos_materia){ 
+                                            $suma_finales = 0;
+                                            $conteo_competencias = 0;
+                                            foreach($lista_competencias as $comp){
+                                                $c_id = $comp['id'];
+                                                if(isset($datos_materia['competencias'][$c_id])) {
+                                                    $suma_finales += $datos_materia['competencias'][$c_id]['final'];
+                                                    $conteo_competencias++;
+                                                }
+                                            }
+                                            $calificacion_final_area = ($conteo_competencias > 0) ? round($suma_finales / $conteo_competencias) : 0;
+                                        ?>
                                             <tr>
                                                 <td class="text-start fw-bold text-dark cell-materia-name"><?php echo htmlspecialchars($datos_materia['nombre']); ?></td>
                                                 <?php foreach($lista_competencias as $comp){ 
                                                     $c_id = $comp['id'];
                                                     $tiene_nota = isset($datos_materia['competencias'][$c_id]);
                                                 ?>
-                                                    <td class="cell-nota-valor"><?php echo $tiene_nota ? $datos_materia['competencias'][$c_id]['p1'] : '-'; ?></td>
-                                                    <td class="cell-nota-valor"><?php echo $tiene_nota ? $datos_materia['competencias'][$c_id]['p2'] : '-'; ?></td>
-                                                    <td class="cell-nota-valor"><?php echo $tiene_nota ? $datos_materia['competencias'][$c_id]['p3'] : '-'; ?></td>
-                                                    <td class="cell-nota-valor"><?php echo $tiene_nota ? $datos_materia['competencias'][$c_id]['p4'] : '-'; ?></td>
+                                                    <td class="cell-nota-valor"><?php echo $tiene_nota ? number_format($datos_materia['competencias'][$c_id]['p1'], 0) : '-'; ?></td>
+                                                    <td class="cell-nota-valor"><?php echo $tiene_nota ? number_format($datos_materia['competencias'][$c_id]['p2'], 0) : '-'; ?></td>
+                                                    <td class="cell-nota-valor"><?php echo $tiene_nota ? number_format($datos_materia['competencias'][$c_id]['p3'], 0) : '-'; ?></td>
+                                                    <td class="cell-nota-valor"><?php echo $tiene_nota ? number_format($datos_materia['competencias'][$c_id]['p4'], 0) : '-'; ?></td>
                                                 <?php } ?>
+                                                
                                                 <?php foreach($lista_competencias as $comp){ 
                                                     $c_id = $comp['id'];
-                                                    echo '<td class="fw-bold text-dark cell-final-bg">' . (isset($datos_materia['competencias'][$c_id]) ? number_format($datos_materia['competencias'][$c_id]['final'], 0) : '-') . '</td>';
-                                                } ?>
+                                                    $tiene_nota = isset($datos_materia['competencias'][$c_id]);
+                                                ?>
+                                                    <td class="fw-bold text-dark cell-final-bg"><?php echo $tiene_nota ? number_format($datos_materia['competencias'][$c_id]['final'], 0) : '-'; ?></td>
+                                                <?php } ?>
+                                                
+                                                <td class="fw-bold cell-nueva-valor"><?php echo ($calificacion_final_area > 0) ? $calificacion_final_area : '-'; ?></td>
+                                                <td class="cell-nueva-valor fw-bold"><?php echo (!hist_null_or_empty($datos_materia['rec_final'])) ? number_format($datos_materia['rec_final'], 0) : '-'; ?></td>
+                                                <td class="cell-nueva-valor fw-bold"><?php echo (!hist_null_or_empty($datos_materia['rec_especial'])) ? number_format($datos_materia['rec_especial'], 0) : '-'; ?></td>
                                             </tr>
                                         <?php } ?>
                                     </tbody>
@@ -229,11 +272,13 @@ $estudiantes = $conn->query("
     ?>
 </div>
 
-<!-- ESTILOS ADICIONALES -->
+<!-- ESTILOS ADICIONALES (Fieles al diseño de la imagen image_464862.png) -->
 <style>
 .s-tabla-reporte th, .s-tabla-reporte td { vertical-align: middle !important; border: 1px solid #cbd5e1 !important; }
 .header-competencia { background-color: #fdebd0 !important; font-size: 0.75rem; }
 .cell-materia-title { background-color: #f5eeeb !important; font-size: 0.8rem; }
+.cell-nueva-columna { background-color: #f9d5e5 !important; color: #000 !important; font-size: 0.75rem; max-width: 95px; }
+.cell-nueva-valor { background-color: #fdf2f7 !important; font-size: 0.8rem; }
 </style>
 
 <!-- MOTOR SCRIPT JAVASCRIPT -->
@@ -266,7 +311,7 @@ function imprimirTodoElHistorial() {
 
 // IMPRIMIR UN SOLO AÑO SELECCIONADO
 function imprimirAnioEspecifico(idBloque) {
-    var encabezadoEstudiante = document.querySelector('#area-record-completo .text-center').outerHTML;
+    var encabezadoEstudiante = document.querySelector('#area-record-completo .header-print-sabana').outerHTML;
     var tablaAnio = document.getElementById(idBloque).outerHTML;
     
     var divTemp = document.createElement('div');
@@ -284,16 +329,22 @@ function ejecutarImpresionLimpia(htmlContent) {
     ventanaImpresion.document.write('<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">');
     
     ventanaImpresion.document.write('<style>');
-    ventanaImpresion.document.write('@page { size: letter landscape; margin: 0.5cm 0.6cm; }');
-    ventanaImpresion.document.write('body { background: #fff !important; color: #000 !important; font-family: Arial, sans-serif; padding: 10px; }');
-    ventanaImpresion.document.write('.s-tabla-reporte { width: 100% !important; font-size: 10px !important; border-collapse: collapse !important; margin-top: 10px !important; margin-bottom: 20px !important; page-break-inside: avoid; }');
-    ventanaImpresion.document.write('.s-tabla-reporte th, .s-tabla-reporte td { padding: 4px 2px !important; border: 1.5px solid #111 !important; text-align: center !important; vertical-align: middle !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }');
-    ventanaImpresion.document.write('.cell-materia-title { background-color: #f5eeeb !important; font-size: 9.5px !important; font-weight: bold !important; width: 160px !important; }');
+    ventanaImpresion.document.write('@page { size: letter landscape; margin: 0.4cm 0.5cm; }');
+    ventanaImpresion.document.write('body { background: #fff !important; color: #000 !important; font-family: Arial, sans-serif; padding: 5px; }');
+    ventanaImpresion.document.write('.s-tabla-reporte { width: 100% !important; font-size: 9px !important; border-collapse: collapse !important; margin-top: 10px !important; margin-bottom: 25px !important; page-break-inside: avoid; }');
+    ventanaImpresion.document.write('.s-tabla-reporte th, .s-tabla-reporte td { padding: 4px 2px !important; border: 1.5px solid #222 !important; text-align: center !important; vertical-align: middle !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }');
+    ventanaImpresion.document.write('.cell-materia-title { background-color: #f5eeeb !important; font-size: 9px !important; font-weight: bold !important; width: 140px !important; }');
     ventanaImpresion.document.write('.header-competencia { background-color: #fdebd0 !important; font-size: 9px !important; font-weight: bold !important; color: #111 !important; }');
-    ventanaImpresion.document.write('.cell-materia-name { font-size: 10px !important; text-align: left !important; padding-left: 8px !important; font-weight: bold !important; }');
-    ventanaImpresion.document.write('.cell-periodo { font-size: 8.5px !important; width: 25px !important; font-weight: bold !important; background-color: #eee !important; }');
-    ventanaImpresion.document.write('.cell-c-final { background-color: #f3f4f6 !important; color: #000 !important; font-size: 8.5px !important; width: 30px !important; font-weight: bold !important; }');
-    ventanaImpresion.document.write('.cell-final-bg { background-color: #f9fafb !important; width: 30px !important; font-size: 10px !important; font-weight: bold !important; }');
+    ventanaImpresion.document.write('.cell-materia-name { font-size: 9.5px !important; text-align: left !important; padding-left: 6px !important; font-weight: bold !important; white-space: nowrap !important; }');
+    ventanaImpresion.document.write('.cell-periodo { font-size: 8px !important; width: 22px !important; font-weight: bold !important; background-color: #fff !important; }');
+    ventanaImpresion.document.write('.cell-nota-valor { font-size: 9px !important; width: 22px !important; }');
+    ventanaImpresion.document.write('.header-final-title { background-color: #e5e7eb !important; color: #000 !important; font-size: 9px !important; font-weight: bold !important; }');
+    ventanaImpresion.document.write('.cell-c-final { background-color: #f3f4f6 !important; color: #000 !important; font-size: 8px !important; width: 26px !important; font-weight: bold !important; }');
+    ventanaImpresion.document.write('.cell-final-bg { background-color: #f9fafb !important; width: 26px !important; font-size: 9px !important; font-weight: bold !important; }');
+    
+    ventanaImpresion.document.write('.cell-nueva-columna { background-color: #f5b7b1 !important; color: #000 !important; font-size: 8.5px !important; font-weight: bold !important; width: 65px !important; word-wrap: break-word !important; }');
+    ventanaImpresion.document.write('.cell-nueva-valor { background-color: #fff !important; font-size: 9.5px !important; width: 65px !important; }');
+    
     ventanaImpresion.document.write('.bloque-anio-contenedor { page-break-after: always !important; break-after: page !important; }');
     ventanaImpresion.document.write('</style>');
     
