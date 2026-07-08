@@ -13,6 +13,27 @@ $rol = $_SESSION['rol_id'];
 $nombre = $_SESSION['nombre'];
 
 // ==========================================
+// CAPTURAR EL ID DEL USUARIO DESDE LA SESIÓN
+// ==========================================
+$id_usuario = $_SESSION['id_usuario'] ?? $_SESSION['usuario_id'] ?? $_SESSION['id'] ?? 0; 
+
+// ==========================================
+// CONTADOR DE MENSAJES NO LEÍDOS
+// ==========================================
+$mensajes_no_leidos = 0;
+
+if ($id_usuario > 0) {
+    $query_mensajes = "SELECT COUNT(*) AS total FROM mensajes WHERE receptor_id = ? AND leido = 0";
+    if ($stmt_msg = $conn->prepare($query_mensajes)) {
+        $stmt_msg->bind_param("i", $id_usuario);
+        $stmt_msg->execute();
+        $res_msg = $stmt_msg->get_result()->fetch_assoc();
+        $mensajes_no_leidos = $res_msg['total'] ?? 0;
+        $stmt_msg->close();
+    }
+}
+
+// ==========================================
 // OBTENER CONFIGURACIÓN DEL CENTRO EDUCATIVO
 // ==========================================
 $consulta_config = $conn->query("
@@ -34,19 +55,37 @@ $logo_centro = $datos_config['logo'] ?? '';
     <title><?php echo htmlspecialchars($nombre_centro); ?></title>
 
     <?php if (!empty($logo_centro) && file_exists("uploads/" . $logo_centro)): ?>
-        <link rel="shortcut icon" href="uploads/<?php echo htmlspecialchars($logo_centro); ?>" type="image/x-icon">
+        <link class="shortcut icon" href="uploads/<?php echo htmlspecialchars($logo_centro); ?>" type="image/x-icon">
     <?php else: ?>
-        <link rel="shortcut icon" href="https://cdn-icons-png.flaticon.com/512/2997/2997300.png" type="image/x-icon">
+        <link class="shortcut icon" href="https://cdn-icons-png.flaticon.com/512/2997/2997300.png" type="image/x-icon">
     <?php endif; ?>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-
+    
+    <style>
+        /* Estilos personalizados para la pestaña flotante de notificaciones */
+        .contenedor-notificaciones {
+            position: relative;
+        }
+        .pestana-flotante {
+            position: absolute;
+            top: 50px;
+            right: 0;
+            width: 290px;
+            background-color: #ffffff;
+            border: 1px solid #dee2e6;
+            border-radius: 12px;
+            box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.15);
+            z-index: 2000;
+            display: none; /* Oculto por defecto */
+        }
+    </style>
 </head>
-
 
 <body class="bg-light" style="overflow-x: hidden;">
 
+    <!-- MENÚ LATERAL -->
     <div class="bg-white text-dark border-end border-dark shadow position-fixed top-0 start-0 vh-100" 
          style="width: 270px; overflow-y: auto; z-index: 1000;">
 
@@ -91,16 +130,16 @@ $logo_centro = $datos_config['logo'] ?? '';
                     <i class="bi bi-people-fill text-secondary"></i>
                     <span>Usuarios</span>
                 </a>
-                <a href="principal.php?seccion=chat"
-   class="d-flex align-items-center gap-2 text-dark text-decoration-none p-3 my-1 rounded-3 btn btn-light text-start border-0">
-    <i class="bi bi-chat-dots-fill text-secondary"></i>
-    <span>Chat</span>
-</a>
-<a href="principal.php?seccion=historial_chat"
-   class="d-flex align-items-center gap-2 text-dark text-decoration-none p-3 my-1 rounded-3 btn btn-light text-start border-0">
-    <i class="bi bi-clock-history text-secondary"></i>
-    <span>Historial Chat</span>
-</a>
+                
+                <a href="principal.php?seccion=chat" class="d-flex align-items-center gap-2 text-dark text-decoration-none p-3 my-1 rounded-3 btn btn-light text-start border-0">
+                    <i class="bi bi-chat-dots-fill text-secondary"></i>
+                    <span>Chat</span>
+                </a>
+                
+                <a href="principal.php?seccion=historial_chat" class="d-flex align-items-center gap-2 text-dark text-decoration-none p-3 my-1 rounded-3 btn btn-light text-start border-0">
+                    <i class="bi bi-clock-history text-secondary"></i>
+                    <span>Historial Chat</span>
+                </a>
 
                 <div>
                     <div class="d-flex align-items-center gap-2 text-dark p-3 my-1 rounded-3 btn btn-light text-start border-0" onclick="toggleMenu('academicoMenu')" style="cursor: pointer;">
@@ -218,11 +257,10 @@ $logo_centro = $datos_config['logo'] ?? '';
                  <a href="principal.php?seccion=calificaciones" class="d-flex align-items-center gap-2 text-dark text-decoration-none p-3 my-1 rounded-3 btn btn-light text-start border-0">
                     <i class="bi bi-journal-check text-secondary"></i> Calificaciones
                 </a>
-                <a href="principal.php?seccion=chat"
-   class="d-flex align-items-center gap-2 text-dark text-decoration-none p-3 my-1 rounded-3 btn btn-light text-start border-0">
-    <i class="bi bi-chat-dots-fill text-secondary"></i>
-    <span>Chat</span>
-</a>
+                <a href="principal.php?seccion=chat" class="d-flex align-items-center gap-2 text-dark text-decoration-none p-3 my-1 rounded-3 btn btn-light text-start border-0">
+                    <i class="bi bi-chat-dots-fill text-secondary"></i>
+                    <span>Chat</span>
+                </a>
 
             <?php elseif ($rol == 3): ?>
 
@@ -232,11 +270,10 @@ $logo_centro = $datos_config['logo'] ?? '';
                 <a href="principal.php?seccion=reporte_comportamiento" class="d-flex align-items-center gap-2 text-dark text-decoration-none p-3 my-1 rounded-3 btn btn-light text-start border-0">
                     <i class="bi bi-clipboard-data text-secondary"></i> Mi Comportamiento
                 </a>
-                <a href="principal.php?seccion=chat"
-   class="d-flex align-items-center gap-2 text-dark text-decoration-none p-3 my-1 rounded-3 btn btn-light text-start border-0">
-    <i class="bi bi-chat-dots-fill text-secondary"></i>
-    <span>Chat</span>
-</a>
+                <a href="principal.php?seccion=chat" class="d-flex align-items-center gap-2 text-dark text-decoration-none p-3 my-1 rounded-3 btn btn-light text-start border-0">
+                    <i class="bi bi-chat-dots-fill text-secondary"></i>
+                    <span>Chat</span>
+                </a>
 
             <?php endif; ?>
 
@@ -247,12 +284,59 @@ $logo_centro = $datos_config['logo'] ?? '';
         </div>
     </div>
 
+    <!-- CONTENIDO GENERAL DE LA VISTA -->
     <div class="p-4" style="margin-left: 270px;">
 
-        <div class="bg-white p-3 px-4 rounded-4 shadow-sm mb-4 border border-light-subtle">
+        <!-- BARRA SUPERIOR DE BIENVENIDA -->
+        <div class="bg-white p-3 px-4 rounded-4 shadow-sm mb-4 border border-light-subtle d-flex justify-content-between align-items-center">
             <h3 class="m-0 fw-bold text-dark text-opacity-75 fs-4">
                 Bienvenido, <?php echo htmlspecialchars($nombre); ?>
             </h3>
+
+            <!-- Contenedor relativo de la Campana -->
+            <div class="contenedor-notificaciones">
+                <button class="position-relative text-secondary p-2 bg-light rounded-circle border d-flex align-items-center justify-content-center" 
+                        type="button" 
+                        id="btnNoti"
+                        onclick="toggleNotificaciones(event)"
+                        style="width: 42px; height: 42px; transition: all 0.2s ease; cursor: pointer;">
+                    
+                    <i class="bi bi-bell-fill fs-5"></i>
+                    
+                    <!-- Burbuja roja de cantidad -->
+                    <?php if ($mensajes_no_leidos > 0): ?>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 11px;">
+                            <?php echo $mensajes_no_leidos; ?>
+                        </span>
+                    <?php endif; ?>
+                </button>
+
+                <!-- PESTAÑA FLOTANTE MANUAL -->
+                <div class="pestana-flotante p-3" id="menuNoti">
+                    <div class="fw-bold text-dark border-bottom pb-2 mb-2 d-flex align-items-center gap-1" style="font-size: 15px;">
+                        <i class="bi bi-bell"></i> Notificaciones del Sistema
+                    </div>
+                    
+                    <?php if ($mensajes_no_leidos > 0): ?>
+                        <div class="d-flex align-items-start gap-2 py-2" style="font-size: 13.5px; color: #333;">
+                            <i class="bi bi-chat-left-text-fill text-primary mt-1" style="font-size: 16px;"></i>
+                            <div>
+                                Tienes <strong class="text-danger"><?php echo $mensajes_no_leidos; ?></strong> mensajes nuevos sin leer en la plataforma escolar.
+                            </div>
+                        </div>
+                        <div class="border-top pt-2 mt-2">
+                            <a class="btn btn-primary btn-sm w-100 text-center text-white fw-semibold py-1-5 border-0" href="principal.php?seccion=chat">
+                                Ir a la bandeja de mensajes
+                            </a>
+                        </div>
+                    <?php else: ?>
+                        <div class="text-muted text-center py-3" style="font-size: 13.5px;">
+                            <i class="bi bi-check-circle-fill text-success d-block fs-4 mb-1"></i>
+                            Todo al día. No tienes avisos pendientes.
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
         </div>
 
         <?php
@@ -286,12 +370,10 @@ $logo_centro = $datos_config['logo'] ?? '';
             elseif ($seccion === 'asistencia') include("Asistencia/asistencia.php");
             elseif ($seccion === 'reporte_asistencia') include("Reporte/reporte_asistencia.php");
             elseif ($seccion === 'chat') include("Chat/chat.php");
-            elseif ($seccion === 'historial_chat' && $rol == 1)
-    include("Chat/historial_chat.php");
+            elseif ($seccion === 'historial_chat' && $rol == 1) include("Chat/historial_chat.php");
             elseif ($seccion === 'record_notas') include("Calificaciones/record_notas.php");
             elseif ($seccion === 'certificacion') include("Calificaciones/certificacion.php");
             else echo "<div class='alert alert-danger rounded-4'>Sección no encontrada.</div>";
-            
         }
         ?>
 
@@ -300,6 +382,28 @@ $logo_centro = $datos_config['logo'] ?? '';
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+    // Control manual estricto del estado bloqueado/desplegado de la pestaña flotante
+    function toggleNotificaciones(event) {
+        event.stopPropagation();
+        let menu = document.getElementById('menuNoti');
+        if (menu.style.display === 'none' || menu.style.display === '') {
+            menu.style.display = 'block';
+        } else {
+            menu.style.display = 'none';
+        }
+    }
+
+    // Cerrar automáticamente la pestaña si haces clic en cualquier otra parte fuera de ella
+    document.addEventListener('click', function(e) {
+        let menu = document.getElementById('menuNoti');
+        let btn = document.getElementById('btnNoti');
+        if (menu && menu.style.display === 'block') {
+            if (!menu.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
+                menu.style.display = 'none';
+            }
+        }
+    });
+
     function toggleMenu(id){
         let menu = document.getElementById(id);
         if(menu.classList.contains('d-none')){

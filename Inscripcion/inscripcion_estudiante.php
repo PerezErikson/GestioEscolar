@@ -192,41 +192,12 @@ $responsables = $conn->query("
 
         </h5>
 
-        <form method="POST" class="row g-3">
+      <form method="POST" class="row g-3">
 
             <input type="hidden"
                    name="accion"
                    value="guardar">
 
-            <!-- NOMBRE -->
-            <div class="col-md-6">
-
-                <label class="form-label fw-semibold">
-                    Nombre
-                </label>
-
-                <input type="text"
-                       name="nombre"
-                       class="form-control rounded-3"
-                       required>
-
-            </div>
-
-            <!-- APELLIDO -->
-            <div class="col-md-6">
-
-                <label class="form-label fw-semibold">
-                    Apellido
-                </label>
-
-                <input type="text"
-                       name="apellido"
-                       class="form-control rounded-3"
-                       required>
-
-            </div>
-
-            <!-- ID -->
             <div class="col-md-4">
 
                 <label class="form-label fw-semibold">
@@ -241,8 +212,33 @@ $responsables = $conn->query("
 
             </div>
 
-            <!-- CORREO -->
             <div class="col-md-4">
+
+                <label class="form-label fw-semibold">
+                    Nombre
+                </label>
+
+                <input type="text"
+                       name="nombre"
+                       class="form-control rounded-3"
+                       required>
+
+            </div>
+
+            <div class="col-md-4">
+
+                <label class="form-label fw-semibold">
+                    Apellido
+                </label>
+
+                <input type="text"
+                       name="apellido"
+                       class="form-control rounded-3"
+                       required>
+
+            </div>
+
+            <div class="col-md-6">
 
                 <label class="form-label fw-semibold">
                     Correo
@@ -255,26 +251,25 @@ $responsables = $conn->query("
 
             </div>
 
-            <div class="col-md-4">
+            <div class="col-md-6">
 
-    <label class="form-label fw-semibold">
-        Fecha nacimiento
-    </label>
+                <label class="form-label fw-semibold">
+                    Fecha nacimiento
+                </label>
 
-    <input type="date"
-       name="fecha_nacimiento"
-       class="form-control rounded-3"
-       min="<?php echo date('Y-m-d', strtotime('-18 years')); ?>"
-       max="<?php echo date('Y-m-d', strtotime('-4 years')); ?>"
-       required>
+                <input type="date"
+                       name="fecha_nacimiento"
+                       class="form-control rounded-3"
+                       min="<?php echo date('Y-m-d', strtotime('-18 years')); ?>"
+                       max="<?php echo date('Y-m-d', strtotime('-4 years')); ?>"
+                       required>
 
-  <small class="text-muted">
-Edad permitida: entre 4 y 18 años.
-</small>
+                <small class="text-muted d-block">
+                    Edad permitida: entre 4 y 18 años.
+                </small>
 
-</div>
+            </div>
 
-            <!-- DIRECCION -->
             <div class="col-12">
 
                 <label class="form-label fw-semibold">
