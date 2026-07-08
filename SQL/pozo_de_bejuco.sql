@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 23-06-2026 a las 01:32:36
+-- Tiempo de generación: 09-07-2026 a las 00:33:47
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -94,7 +94,7 @@ CREATE TABLE `asistencia` (
   `estudiante_id` int(11) NOT NULL,
   `grado_id` int(11) NOT NULL,
   `fecha` date NOT NULL,
-  `estado` enum('Presente','Ausente','Excusa') NOT NULL
+  `estado` enum('Presente','Ausente','Excusa','Tardanza') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -102,9 +102,8 @@ CREATE TABLE `asistencia` (
 --
 
 INSERT INTO `asistencia` (`id`, `estudiante_id`, `grado_id`, `fecha`, `estado`) VALUES
-(15, 19, 5, '2026-05-30', 'Presente'),
-(16, 19, 3, '2026-06-11', 'Presente'),
-(17, 20, 3, '2026-06-11', 'Ausente');
+(20, 19, 3, '2026-07-05', 'Tardanza'),
+(21, 20, 3, '2026-07-05', 'Tardanza');
 
 -- --------------------------------------------------------
 
@@ -124,6 +123,9 @@ CREATE TABLE `calificaciones` (
   `p3` decimal(5,2) NOT NULL DEFAULT 0.00,
   `p4` decimal(5,2) NOT NULL DEFAULT 0.00,
   `nota_final` decimal(5,2) NOT NULL DEFAULT 0.00,
+  `cf_area` int(11) DEFAULT NULL,
+  `rec_final` int(11) DEFAULT NULL,
+  `rec_especial` int(11) DEFAULT NULL,
   `fecha_registro` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -131,28 +133,35 @@ CREATE TABLE `calificaciones` (
 -- Volcado de datos para la tabla `calificaciones`
 --
 
-INSERT INTO `calificaciones` (`id`, `estudiante_id`, `grado_id`, `materia_id`, `anio_id`, `competencia_id`, `p1`, `p2`, `p3`, `p4`, `nota_final`, `fecha_registro`) VALUES
-(1, 19, 3, 15, 1, 1, 90.00, 100.00, 100.00, 100.00, 97.50, '2026-06-03 16:28:41'),
-(2, 19, 3, 16, 1, 1, 100.00, 100.00, 100.00, 100.00, 100.00, '2026-06-03 16:28:41'),
-(3, 19, 3, 17, 1, 1, 100.00, 100.00, 100.00, 100.00, 100.00, '2026-06-03 16:28:41'),
-(4, 19, 3, 18, 1, 1, 100.00, 100.00, 100.00, 100.00, 100.00, '2026-06-03 16:28:41'),
-(5, 19, 3, 19, 1, 1, 100.00, 100.00, 100.00, 100.00, 100.00, '2026-06-03 16:28:41'),
-(6, 19, 3, 14, 1, 1, 100.00, 100.00, 100.00, 100.00, 100.00, '2026-06-03 16:28:41'),
-(7, 19, 3, 13, 1, 1, 100.00, 100.00, 100.00, 100.00, 100.00, '2026-06-03 16:28:41'),
-(8, 19, 3, 15, 1, 3, 100.00, 100.00, 100.00, 100.00, 100.00, '2026-06-03 16:29:16'),
-(9, 19, 3, 16, 1, 3, 100.00, 100.00, 100.00, 100.00, 100.00, '2026-06-03 16:29:16'),
-(10, 19, 3, 17, 1, 3, 100.00, 100.00, 100.00, 100.00, 100.00, '2026-06-03 16:29:16'),
-(11, 19, 3, 18, 1, 3, 100.00, 100.00, 100.00, 100.00, 100.00, '2026-06-03 16:29:16'),
-(12, 19, 3, 19, 1, 3, 100.00, 100.00, 100.00, 100.00, 100.00, '2026-06-03 16:29:16'),
-(13, 19, 3, 14, 1, 3, 100.00, 100.00, 100.00, 100.00, 100.00, '2026-06-03 16:29:16'),
-(14, 19, 3, 13, 1, 3, 100.00, 100.00, 100.00, 100.00, 100.00, '2026-06-03 16:29:16'),
-(15, 19, 3, 15, 1, 2, 100.00, 100.00, 100.00, 100.00, 100.00, '2026-06-03 16:29:45'),
-(16, 19, 3, 16, 1, 2, 100.00, 100.00, 100.00, 100.00, 100.00, '2026-06-03 16:29:45'),
-(17, 19, 3, 17, 1, 2, 100.00, 100.00, 100.00, 100.00, 100.00, '2026-06-03 16:29:45'),
-(18, 19, 3, 18, 1, 2, 100.00, 100.00, 100.00, 100.00, 100.00, '2026-06-03 16:29:45'),
-(19, 19, 3, 19, 1, 2, 100.00, 100.00, 100.00, 100.00, 100.00, '2026-06-03 16:29:45'),
-(20, 19, 3, 14, 1, 2, 100.00, 100.00, 100.00, 100.00, 100.00, '2026-06-03 16:29:45'),
-(21, 19, 3, 13, 1, 2, 100.00, 100.00, 100.00, 100.00, 100.00, '2026-06-03 16:29:45');
+INSERT INTO `calificaciones` (`id`, `estudiante_id`, `grado_id`, `materia_id`, `anio_id`, `competencia_id`, `p1`, `p2`, `p3`, `p4`, `nota_final`, `cf_area`, `rec_final`, `rec_especial`, `fecha_registro`) VALUES
+(78, 19, 3, 15, 1, 0, 0.00, 0.00, 0.00, 0.00, 0.00, NULL, 100, 100, '2026-07-05 15:22:09'),
+(79, 19, 3, 16, 1, 0, 0.00, 0.00, 0.00, 0.00, 0.00, NULL, 100, 100, '2026-07-05 15:22:09'),
+(80, 19, 3, 17, 1, 0, 0.00, 0.00, 0.00, 0.00, 0.00, NULL, 100, 100, '2026-07-05 15:22:09'),
+(81, 19, 3, 18, 1, 0, 0.00, 0.00, 0.00, 0.00, 0.00, NULL, 100, 100, '2026-07-05 15:22:09'),
+(82, 19, 3, 19, 1, 0, 0.00, 0.00, 0.00, 0.00, 0.00, NULL, 100, 100, '2026-07-05 15:22:09'),
+(83, 19, 3, 14, 1, 0, 0.00, 0.00, 0.00, 0.00, 0.00, NULL, 100, 100, '2026-07-05 15:22:09'),
+(84, 19, 3, 13, 1, 0, 0.00, 0.00, 0.00, 0.00, 0.00, NULL, 100, 100, '2026-07-05 15:22:09'),
+(85, 19, 3, 15, 1, 1, 100.00, 100.00, 100.00, 100.00, 100.00, NULL, NULL, NULL, '2026-07-05 15:22:54'),
+(86, 19, 3, 16, 1, 1, 100.00, 100.00, 100.00, 100.00, 100.00, NULL, NULL, NULL, '2026-07-05 15:22:54'),
+(87, 19, 3, 17, 1, 1, 100.00, 100.00, 100.00, 100.00, 100.00, NULL, NULL, NULL, '2026-07-05 15:22:54'),
+(88, 19, 3, 18, 1, 1, 100.00, 100.00, 100.00, 100.00, 100.00, NULL, NULL, NULL, '2026-07-05 15:22:54'),
+(89, 19, 3, 19, 1, 1, 100.00, 100.00, 100.00, 100.00, 100.00, NULL, NULL, NULL, '2026-07-05 15:22:54'),
+(90, 19, 3, 14, 1, 1, 100.00, 100.00, 100.00, 100.00, 100.00, NULL, NULL, NULL, '2026-07-05 15:22:54'),
+(91, 19, 3, 13, 1, 1, 100.00, 100.00, 100.00, 100.00, 100.00, NULL, NULL, NULL, '2026-07-05 15:22:54'),
+(92, 19, 3, 15, 1, 3, 100.00, 100.00, 100.00, 100.00, 100.00, NULL, NULL, NULL, '2026-07-05 15:23:16'),
+(93, 19, 3, 16, 1, 3, 100.00, 100.00, 100.00, 100.00, 100.00, NULL, NULL, NULL, '2026-07-05 15:23:16'),
+(94, 19, 3, 17, 1, 3, 100.00, 100.00, 100.00, 100.00, 100.00, NULL, NULL, NULL, '2026-07-05 15:23:16'),
+(95, 19, 3, 18, 1, 3, 100.00, 100.00, 100.00, 100.00, 100.00, NULL, NULL, NULL, '2026-07-05 15:23:16'),
+(96, 19, 3, 19, 1, 3, 100.00, 100.00, 100.00, 100.00, 100.00, NULL, NULL, NULL, '2026-07-05 15:23:16'),
+(97, 19, 3, 14, 1, 3, 100.00, 100.00, 100.00, 100.00, 100.00, NULL, NULL, NULL, '2026-07-05 15:23:16'),
+(98, 19, 3, 13, 1, 3, 100.00, 100.00, 100.00, 100.00, 100.00, NULL, NULL, NULL, '2026-07-05 15:23:16'),
+(99, 19, 3, 15, 1, 2, 100.00, 100.00, 100.00, 100.00, 100.00, NULL, NULL, NULL, '2026-07-05 15:30:04'),
+(100, 19, 3, 16, 1, 2, 100.00, 100.00, 100.00, 100.00, 100.00, NULL, NULL, NULL, '2026-07-05 15:30:04'),
+(101, 19, 3, 17, 1, 2, 100.00, 100.00, 100.00, 100.00, 100.00, NULL, NULL, NULL, '2026-07-05 15:30:04'),
+(102, 19, 3, 18, 1, 2, 100.00, 100.00, 100.00, 100.00, 100.00, NULL, NULL, NULL, '2026-07-05 15:30:04'),
+(103, 19, 3, 19, 1, 2, 100.00, 100.00, 100.00, 100.00, 100.00, NULL, NULL, NULL, '2026-07-05 15:30:04'),
+(104, 19, 3, 14, 1, 2, 100.00, 100.00, 100.00, 100.00, 100.00, NULL, NULL, NULL, '2026-07-05 15:30:04'),
+(105, 19, 3, 13, 1, 2, 100.00, 100.00, 100.00, 100.00, 100.00, NULL, NULL, NULL, '2026-07-05 15:30:04');
 
 -- --------------------------------------------------------
 
@@ -215,15 +224,16 @@ CREATE TABLE `configuracion` (
   `correo` varchar(150) DEFAULT NULL,
   `director` varchar(100) DEFAULT NULL,
   `fecha_creacion` date DEFAULT curdate(),
-  `logo` varchar(255) DEFAULT NULL
+  `logo` varchar(255) DEFAULT NULL,
+  `activo` tinyint(1) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `configuracion`
 --
 
-INSERT INTO `configuracion` (`id`, `nombre_centro`, `codigo_centro`, `direccion`, `distrito`, `telefono`, `correo`, `director`, `fecha_creacion`, `logo`) VALUES
-(9, 'Pozo De Bejuco', '01815', 'Pueblo Viejo, La Vega, Rep. Dom.', '06-05', '829 207-4684', 'administrador@gmail.com', 'MIRURJIA ROSARIO ABREU', '2026-06-04', '1780547644_6a21003c8be31.png');
+INSERT INTO `configuracion` (`id`, `nombre_centro`, `codigo_centro`, `direccion`, `distrito`, `telefono`, `correo`, `director`, `fecha_creacion`, `logo`, `activo`) VALUES
+(10, 'Pozo De Bejuco', '01815', 'Pueblo Viejo La Vega', '06-05', '8098972083', 'administrador@gmail.com', 'Mirurjia Carmela Rosario Abreu', '2026-07-08', '1783546335_6a4ec1df3c7ee.png', 1);
 
 -- --------------------------------------------------------
 
@@ -326,7 +336,8 @@ CREATE TABLE `estudiantes` (
 
 INSERT INTO `estudiantes` (`numero`, `nombre`, `apellido`, `ID`, `correo`, `fecha_nacimiento`, `direccion`, `telefono`, `grado_id`, `nivel_id`, `fecha_registro`, `responsable_id`, `estado`) VALUES
 (19, 'Eridania Mercedes', 'Muñoz Rosario', '1092091', 'eridania@gmail.com', '2009-06-09', 'Pueblo Viejo La Vega', '8098972083', 3, 3, '2026-05-30 02:56:37', 45, 'Activo'),
-(20, 'Cristia', 'Rosario Abreu', '109209', 'cristian@gmail.com', '2010-08-18', 'Pueblo Viejo La Vega', '8098972083', 3, 3, '2026-06-03 16:33:11', 46, 'Activo');
+(20, 'Cristia', 'Rosario Abreu', '109209', 'cristian@gmail.com', '2010-08-18', 'Pueblo Viejo La Vega', '8098972083', 3, 3, '2026-06-03 16:33:11', 46, 'Activo'),
+(21, 'Jose Martinez', 'Muñoz Rosario', '10920910', 'jose12@gmail.com', '2011-06-08', 'Pueblo Viejo La Vega', '8098972083', 5, 3, '2026-07-08 21:42:43', 47, 'Activo');
 
 -- --------------------------------------------------------
 
@@ -385,7 +396,7 @@ INSERT INTO `materias` (`id`, `nombre`, `id_nivel`) VALUES
 (16, 'Ciencias Sociales', 3),
 (17, 'Educación Artística', 3),
 (18, 'Educación Física', 3),
-(19, 'Formación Integral Humana y Religiosa', 3),
+(19, 'FIHR', 3),
 (22, 'Inglés', 3);
 
 -- --------------------------------------------------------
@@ -410,9 +421,18 @@ CREATE TABLE `mensajes` (
 --
 
 INSERT INTO `mensajes` (`id`, `emisor_id`, `receptor_id`, `mensaje`, `leido`, `oculto_emisor`, `oculto_receptor`, `fecha`) VALUES
-(1, 5, 6, 'hola', 1, 1, 0, '2026-06-07 16:02:58'),
-(2, 5, 7, 'hola', 0, 1, 0, '2026-06-07 20:03:59'),
-(3, 5, 6, 'hola como estas', 0, 1, 0, '2026-06-11 17:52:18');
+(1, 5, 6, 'hola', 1, 1, 1, '2026-06-07 16:02:58'),
+(2, 5, 7, 'hola', 1, 1, 0, '2026-06-07 20:03:59'),
+(3, 5, 6, 'hola como estas', 1, 1, 1, '2026-06-11 17:52:18'),
+(4, 5, 6, 'Hola Maestro Como Se encuentra el dia de hoy', 1, 1, 1, '2026-07-08 18:00:46'),
+(5, 6, 5, 'hola Director', 1, 0, 1, '2026-07-08 18:09:14'),
+(6, 6, 5, 'hole como esta', 1, 0, 1, '2026-07-08 18:14:41'),
+(7, 5, 6, 'estamos bn y usted como se encuentra', 1, 1, 0, '2026-07-08 18:18:45'),
+(8, 6, 5, 'golaaaaaa', 1, 0, 1, '2026-07-08 18:22:37'),
+(9, 5, 6, 'gola', 1, 1, 0, '2026-07-08 18:27:02'),
+(10, 6, 5, 'hole', 1, 0, 1, '2026-07-08 18:27:14'),
+(11, 6, 5, 'hola', 1, 0, 1, '2026-07-08 18:28:38'),
+(12, 7, 5, 'qqqqq', 1, 0, 1, '2026-07-08 18:29:08');
 
 -- --------------------------------------------------------
 
@@ -449,7 +469,7 @@ CREATE TABLE `responsables` (
   `direccion` varchar(255) NOT NULL,
   `tipo_responsable` varchar(20) NOT NULL,
   `nacionalidad` varchar(100) NOT NULL,
-  `parentesco` varchar(100) NOT NULL,
+  `ocupacion` varchar(100) NOT NULL,
   `estado_civil` varchar(50) NOT NULL,
   `nivel_academico` varchar(100) NOT NULL,
   `fecha_registro` timestamp NOT NULL DEFAULT current_timestamp()
@@ -459,9 +479,11 @@ CREATE TABLE `responsables` (
 -- Volcado de datos para la tabla `responsables`
 --
 
-INSERT INTO `responsables` (`id`, `tipo`, `nombre`, `id_responsable`, `telefono`, `direccion`, `tipo_responsable`, `nacionalidad`, `parentesco`, `estado_civil`, `nivel_academico`, `fecha_registro`) VALUES
-(45, 'Padre', 'Erikson Antonio', '047-0000000-0', '8098972083', 'Pueblo Viejo La Vega', 'Padre', 'Dominicano', 'Padre', 'Casado', 'Universitario', '2026-05-30 02:55:53'),
-(46, 'Madre', 'Mirurjia Carmela Rosario Abreu', '047-0000000-6', '8098972083', 'Pueblo Viejo La Vega', 'Madre', 'Dominicano', 'Madre', 'Casado', 'Universitario', '2026-06-03 16:32:06');
+INSERT INTO `responsables` (`id`, `tipo`, `nombre`, `id_responsable`, `telefono`, `direccion`, `tipo_responsable`, `nacionalidad`, `ocupacion`, `estado_civil`, `nivel_academico`, `fecha_registro`) VALUES
+(45, 'Padre', 'Erikson Antonio', '047-0000000-0', '8098972083', 'Pueblo Viejo La Vega', 'Padre', 'Dominicano', '', 'Casado', 'Universitario', '2026-05-30 02:55:53'),
+(46, 'Madre', 'Mirurjia Carmela Rosario Abreu', '047-0000000-6', '8098972083', 'Pueblo Viejo La Vega', 'Madre', 'Dominicano', '', 'Casado', 'Universitario', '2026-06-03 16:32:06'),
+(47, 'Madre', 'Maria Perez', '047-0000000-8', '8098972083', 'Pueblo Viejo La Vega', 'Madre', 'Dominicano', '', 'Casado', 'Universitario', '2026-07-05 14:29:27'),
+(48, 'Padre', 'jose Perez Rosario', '047-0000000-1', '8098972083', 'Pueblo Viejo La Vega', 'Padre', 'Dominicano', 'Doctor', 'Casado', 'Universitario', '2026-07-05 14:32:57');
 
 -- --------------------------------------------------------
 
@@ -537,7 +559,10 @@ INSERT INTO `usuarios` (`id`, `nombre`, `correo`, `contraseña`, `rol_id`) VALUE
 (5, 'admin', 'admin@admin.com', '123456', 1),
 (6, 'docente', 'docente@escuela.com', '123456', 2),
 (7, 'estudiante', 'estudiante@escuela.com', '123456', 3),
-(20, 'Eridania Mercedes Muñoz Rosario', 'eridania@gmail.com', 'QFlzcmfP', 3);
+(20, 'Eridania Mercedes Muñoz Rosario', 'eridania@gmail.com', 'QFlzcmfP', 3),
+(21, 'Cristia Rosario Abreu', 'cristian@gmail.com', 'iVTFEad9', 3),
+(22, 'Jose Martinez Muñoz Rosario', 'jose12@gmail.com', '8MXnwhXe', 3),
+(23, 'Pamela Acevedo', 'pameela@gmail.com', 'WyqU2xvU', 2);
 
 --
 -- Índices para tablas volcadas
@@ -716,13 +741,13 @@ ALTER TABLE `asignacion_materias`
 -- AUTO_INCREMENT de la tabla `asistencia`
 --
 ALTER TABLE `asistencia`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT de la tabla `calificaciones`
 --
 ALTER TABLE `calificaciones`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=106;
 
 --
 -- AUTO_INCREMENT de la tabla `competencias`
@@ -740,7 +765,7 @@ ALTER TABLE `comportamiento`
 -- AUTO_INCREMENT de la tabla `configuracion`
 --
 ALTER TABLE `configuracion`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT de la tabla `docente`
@@ -758,7 +783,7 @@ ALTER TABLE `estado_estudiante`
 -- AUTO_INCREMENT de la tabla `estudiantes`
 --
 ALTER TABLE `estudiantes`
-  MODIFY `numero` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `numero` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT de la tabla `grados`
@@ -782,7 +807,7 @@ ALTER TABLE `materias`
 -- AUTO_INCREMENT de la tabla `mensajes`
 --
 ALTER TABLE `mensajes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT de la tabla `niveles`
@@ -794,7 +819,7 @@ ALTER TABLE `niveles`
 -- AUTO_INCREMENT de la tabla `responsables`
 --
 ALTER TABLE `responsables`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=47;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=49;
 
 --
 -- AUTO_INCREMENT de la tabla `roles`
@@ -818,7 +843,7 @@ ALTER TABLE `sesiones`
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- Restricciones para tablas volcadas
