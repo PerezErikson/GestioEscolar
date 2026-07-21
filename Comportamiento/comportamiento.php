@@ -5,7 +5,7 @@ $mensaje = "";
 $tipo_mensaje = "";
 
 // =========================
-// GUARDAR COMPORTAMIENTO
+// GUARDAR REGISTRO ANECDÓTICO
 // =========================
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_comportamiento'])) {
 
@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['guardar_comportamient
 
     if ($exists['total'] > 0) {
 
-        $mensaje = "⚠️ Ya se registró comportamiento para este estudiante hoy.";
+        $mensaje = "⚠️ Ya se registró un registro anecdótico para este estudiante hoy.";
         $tipo_mensaje = "warning";
 
     } else {
@@ -62,7 +62,7 @@ if (!$stmt->execute()) {
 
 }
 
-$mensaje = "✅ Comportamiento registrado correctamente.";
+$mensaje = "✅ Registro anecdótico guardado correctamente.";
 $tipo_mensaje = "success";
     }
 }
@@ -78,19 +78,16 @@ $grados = $conn->query("SELECT g.id, CONCAT(g.nombre, ' ', s.nombre) AS grado
 // =========================
 // OBTENER ESTUDIANTES
 // =========================
-// =========================
-// OBTENER ESTUDIANTES
-// =========================
 $estudiantes = [];
 
 if (isset($_GET['grado_id'])) {
 
     $grado_id = intval($_GET['grado_id']);
 $estudiantes = $conn->query("SELECT e.numero, e.nombre, e.apellido
-                             FROM estudiantes e
-                             WHERE e.grado_id = $grado_id
-                             ORDER BY e.apellido ASC, e.nombre ASC");
-                            
+                           FROM estudiantes e
+                           WHERE e.grado_id = $grado_id
+                           ORDER BY e.apellido ASC, e.nombre ASC");
+                           
 }
 ?>
 
@@ -98,7 +95,7 @@ $estudiantes = $conn->query("SELECT e.numero, e.nombre, e.apellido
 
     <!-- TITULO -->
     <h3 class="mb-4 text-primary fw-bold">
-        <i class="bi bi-person-badge"></i> Comportamiento
+        <i class="bi bi-journal-text"></i> Registro anecdótico
     </h3>
 
     <!-- ALERTAS -->
@@ -177,7 +174,7 @@ $estudiantes = $conn->query("SELECT e.numero, e.nombre, e.apellido
     <div class="card border-0 shadow-lg rounded-4 p-4">
 
         <h5 class="mb-4 fw-semibold">
-            <i class="bi bi-people"></i> Registro de comportamiento
+            <i class="bi bi-people"></i> Nuevo registro anecdótico
         </h5>
 
         <form method="POST"
@@ -222,7 +219,7 @@ $estudiantes = $conn->query("SELECT e.numero, e.nombre, e.apellido
                 <div class="col-md-3">
 
                     <label class="form-label fw-semibold">
-                        Nota de comportamiento
+                        Valoración del registro
                     </label>
 
                     <select name="nota"
@@ -244,13 +241,13 @@ $estudiantes = $conn->query("SELECT e.numero, e.nombre, e.apellido
                 <div class="col-md-4">
 
                     <label class="form-label fw-semibold">
-                        Observación
+                        Observación / Descripción
                     </label>
 
                     <input type="text"
                            name="observacion"
                            class="form-control rounded-3"
-                           placeholder="Comentario opcional">
+                           placeholder="Detalle del acontecimiento">
 
                 </div>
 
@@ -264,7 +261,7 @@ $estudiantes = $conn->query("SELECT e.numero, e.nombre, e.apellido
                         onclick="abrirModalGuardar()">
 
                     <i class="bi bi-save"></i>
-                    Guardar comportamiento
+                    Guardar registro anecdótico
 
                 </button>
 
@@ -298,14 +295,14 @@ $estudiantes = $conn->query("SELECT e.numero, e.nombre, e.apellido
 
                             <div class="mb-3">
 
-                                <i class="bi bi-person-check-fill text-success"
+                                <i class="bi bi-journal-check text-success"
                                    style="font-size: 65px;">
                                 </i>
 
                             </div>
 
                             <h4 class="fw-bold mb-3">
-                                ¿Deseas guardar este comportamiento?
+                                ¿Deseas guardar este registro anecdótico?
                             </h4>
 
                             <p class="text-muted">

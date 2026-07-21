@@ -56,7 +56,18 @@ $fecha_hoy = date("d") . " días del mes de " . $meses[date("F")] . " del año "
     <title>Certificación del Estudiante</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { font-family: 'Times New Roman', serif; margin: 40px; background-color: #f8f9fa; }
+        /* Tipografía limpia y moderna para el formulario y controles generales (similar a la imagen de referencia) */
+        body { 
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+            margin: 40px; 
+            background-color: #f8f9fa; 
+        }
+
+        /* Estilo específico y formal tipo "Times New Roman" exclusivamente para el contenido del certificado impreso */
+        .certificado-texto { 
+            font-family: 'Times New Roman', serif; 
+        }
+
         .titulo { text-align: center; font-weight: bold; font-size: 21px; margin-top: 30px; letter-spacing: 1px; }
         .firma { text-align: center; margin-top: 60px; font-style: italic; }
         .subrayado { text-decoration: underline; font-weight: bold; }
@@ -165,7 +176,7 @@ $fecha_hoy = date("d") . " días del mes de " . $meses[date("F")] . " del año "
             </button>
         </div>
 
-        <div class="card p-5 mt-2" style="background: #fff; min-height: 24cm;">
+        <div class="card p-5 mt-2 certificado-texto" style="background: #fff; min-height: 24cm;">
             <div class="text-center mb-4">
                 <?php if (!empty($logo_base64)): ?>
                     <img id="img_logo_centro" src="<?php echo $logo_base64; ?>" alt="Logo Centro" style="width:110px; height:auto; margin-bottom:10px; display:inline-block !important;">

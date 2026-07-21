@@ -79,7 +79,7 @@ if ($rol == 3) {
     <!-- TITULO -->
     <h3 class="mb-4 text-primary fw-bold">
         <i class="bi bi-clipboard-check"></i>
-        Reporte de Comportamiento
+        Registro anecdótico
     </h3>
 
     <?php if ($rol != 3) { ?>
@@ -167,8 +167,8 @@ if ($rol == 3) {
 
                 <?php
                     echo ($rol == 3)
-                    ? "<i class='bi bi-person'></i> Tu historial de comportamiento"
-                    : "<i class='bi bi-people'></i> Comportamiento del grado seleccionado";
+                    ? "<i class='bi bi-person'></i> Tu historial de Registro anecdótico"
+                    : "<i class='bi bi-people'></i> Registro anecdótico del grado seleccionado";
                 ?>
 
             </h5>
@@ -287,7 +287,7 @@ if ($rol == 3) {
                 </h6>
 
                 <span>
-                    ⚠️ No existen registros de comportamiento para la búsqueda realizada.
+                    ⚠️ No existen registros anecdóticos para la búsqueda realizada.
                 </span>
 
             </div>

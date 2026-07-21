@@ -1,5 +1,4 @@
 <?php
-
 // ==========================================
 // CONEXIÓN A LA BASE DE DATOS
 // ==========================================
@@ -13,7 +12,6 @@ $responsables = $conn->query("
     FROM responsables
     ORDER BY nombre ASC
 ");
-
 ?>
 
 <div class="container mt-4">
@@ -22,11 +20,8 @@ $responsables = $conn->query("
     <!-- TÍTULO -->
     <!-- ========================================== -->
     <h3 class="mb-4 text-primary fw-bold">
-
         <i class="bi bi-people-fill"></i>
-
         Gestión de Responsables
-
     </h3>
 
     <!-- ========================================== -->
@@ -38,91 +33,19 @@ $responsables = $conn->query("
         <!-- BUSCADOR -->
         <!-- ========================================== -->
         <div class="row mb-4">
-
             <div class="col-md-6">
-
                 <div class="input-group shadow-sm">
-
                     <span class="input-group-text bg-primary text-white border-0">
-
                         <i class="bi bi-search"></i>
-
                     </span>
-
                     <input type="text"
                            id="buscadorResponsable"
                            class="form-control border-0 shadow-sm"
                            placeholder="Buscar responsable por nombre, cédula o teléfono...">
-
                 </div>
-
             </div>
-
         </div>
-        <!-- ========================================== -->
-        <!-- TABLA -->
-        <!-- ========================================== -->
-<?php
 
-// ==========================================
-// CONEXIÓN A LA BASE DE DATOS
-// ==========================================
-include(__DIR__ . "/../conexion/conexion.php");
-
-// ==========================================
-// OBTENER RESPONSABLES
-// ==========================================
-$responsables = $conn->query("
-    SELECT * 
-    FROM responsables
-    ORDER BY nombre ASC
-");
-
-?>
-
-<div class="container mt-4">
-
-    <!-- ========================================== -->
-    <!-- TÍTULO -->
-    <!-- ========================================== -->
-    <h3 class="mb-4 text-primary fw-bold">
-
-        <i class="bi bi-people-fill"></i>
-
-        Gestión de Responsables
-
-    </h3>
-
-    <!-- ========================================== -->
-    <!-- CARD PRINCIPAL -->
-    <!-- ========================================== -->
-    <div class="card border-0 shadow-lg rounded-4 p-4">
-
-        <!-- ========================================== -->
-        <!-- BUSCADOR -->
-        <!-- ========================================== -->
-        <div class="row mb-4">
-
-            <div class="col-md-6">
-
-                <div class="input-group shadow-sm">
-
-                    <span class="input-group-text bg-primary text-white border-0">
-
-                        <i class="bi bi-search"></i>
-
-                    </span>
-
-                    <input type="text"
-                           id="buscadorResponsable"
-                           class="form-control border-0 shadow-sm"
-                           placeholder="Buscar responsable por nombre, cédula o teléfono...">
-
-                </div>
-
-            </div>
-
-        </div>
         <!-- ========================================== -->
         <!-- TABLA -->
         <!-- ========================================== -->
@@ -161,18 +84,20 @@ $responsables = $conn->query("
                                 n.nombre AS nivel
                             FROM estudiantes e
                             INNER JOIN grados1 g 
-                            ON e.grado_id = g.id
+                                ON e.grado_id = g.id
                             INNER JOIN secciones s 
-                            ON g.id_seccion = s.id
+                                ON g.id_seccion = s.id
                             INNER JOIN niveles n 
-                            ON e.nivel_id = n.id
+                                ON e.nivel_id = n.id
                             WHERE e.responsable_id = $id_responsable
                         ");
+                        
                         // ==========================================
                         // CONTAR HIJOS
                         // ==========================================
                         $cantidad_hijos = $hijos->num_rows;
                         ?>
+
                         <!-- ========================================== -->
                         <!-- FILA RESPONSABLE -->
                         <!-- ========================================== -->
@@ -222,20 +147,19 @@ $responsables = $conn->query("
                             </td>
                             <!-- BOTÓN -->
                             <td>
-                           <button
-    class="btn btn-outline-primary btn-sm rounded-pill"
-    type="button"
-    onclick="toggleHijos(<?php echo $r['id']; ?>, this)">
-    <i class="bi bi-eye"></i>
-    Ver Hijos
-</button>
+                                <button class="btn btn-outline-primary btn-sm rounded-pill"
+                                        type="button"
+                                        onclick="toggleHijos(<?php echo $r['id']; ?>, this)">
+                                    <i class="bi bi-eye"></i>
+                                    Ver Hijos
+                                </button>
                             </td>
                         </tr>
+
                         <!-- ========================================== -->
                         <!-- FILA OCULTA -->
                         <!-- ========================================== -->
-                        <tr class="collapse"
-                            id="hijos<?php echo $r['id']; ?>">
+                        <tr class="collapse" id="hijos<?php echo $r['id']; ?>">
                             <td colspan="7">
                                 <div class="card border-0 shadow-sm rounded-4 p-3 bg-light">
                                     <h6 class="fw-bold mb-3 text-secondary">
@@ -304,28 +228,27 @@ $responsables = $conn->query("
                 </tbody>
             </table>
         </div>
+
     </div>
 </div>
+
 <!-- ========================================== -->
 <!-- BOOTSTRAP -->
 <!-- ========================================== -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 <!-- ========================================== -->
-<!-- FILTRO DE BÚSQUEDA -->
+<!-- FILTRO DE BÚSQUEDA Y TOGGLE -->
 <!-- ========================================== -->
 <script>
-
 // ==========================================
 // BUSCADOR RESPONSABLES
 // ==========================================
 document.getElementById('buscadorResponsable').addEventListener('keyup', function () {
-
     let filtro = this.value.toLowerCase();
-
     let filas = document.querySelectorAll('#tablaResponsables tr');
 
     filas.forEach(function (fila) {
-
         // Ignorar filas de hijos
         if (fila.id && fila.id.startsWith('hijos')) {
             return;
@@ -334,51 +257,32 @@ document.getElementById('buscadorResponsable').addEventListener('keyup', functio
         let texto = fila.innerText.toLowerCase();
 
         if (texto.includes(filtro)) {
-
             fila.style.display = '';
-
         } else {
-
             fila.style.display = 'none';
 
             // Ocultar también la fila de hijos asociada
             let siguiente = fila.nextElementSibling;
-
             if (siguiente && siguiente.id && siguiente.id.startsWith('hijos')) {
                 siguiente.style.display = 'none';
             }
         }
-
     });
-
 });
-
 
 // ==========================================
 // ABRIR / CERRAR HIJOS
 // ==========================================
 function toggleHijos(id, boton) {
-
     let fila = document.getElementById('hijos' + id);
-
     if (!fila) return;
 
     if (fila.style.display === 'none' || fila.style.display === '') {
-
         fila.style.display = 'table-row';
-
-        boton.innerHTML =
-            '<i class="bi bi-eye-slash"></i> Ocultar Hijos';
-
+        boton.innerHTML = '<i class="bi bi-eye-slash"></i> Ocultar Hijos';
     } else {
-
         fila.style.display = 'none';
-
-        boton.innerHTML =
-            '<i class="bi bi-eye"></i> Ver Hijos';
-
+        boton.innerHTML = '<i class="bi bi-eye"></i> Ver Hijos';
     }
-
 }
-
 </script>

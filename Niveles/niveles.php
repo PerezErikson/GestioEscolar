@@ -149,7 +149,7 @@ $niveles = $conn->query("
 
     <h3 class="mb-4 text-primary">
         <i class="bi bi-layers"></i>
-        Gestión de Niveles
+        Gestión de ciclos
     </h3>
 
     <!-- ALERTAS -->
@@ -187,7 +187,7 @@ $niveles = $conn->query("
     <div class="card shadow-sm border-0 rounded-4 p-4 mb-4">
 
         <h5 class="mb-4">
-            Registrar nuevo nivel
+            Registrar nuevo ciclo
         </h5>
 
         <form method="POST" class="row g-3">
@@ -199,7 +199,7 @@ $niveles = $conn->query("
             <div class="col-md-12">
 
                 <label class="form-label fw-semibold">
-                    Nombre del nivel
+                    Nombre del ciclo
                 </label>
 
                 <input type="text"
@@ -216,7 +216,7 @@ $niveles = $conn->query("
                         class="btn btn-primary rounded-3 px-4">
 
                     <i class="bi bi-save"></i>
-                    Guardar nivel
+                    Guardar ciclo
 
                 </button>
 
@@ -230,7 +230,7 @@ $niveles = $conn->query("
     <div class="card shadow-sm border-0 rounded-4 p-4">
 
         <h5 class="mb-4">
-            Lista de niveles registrados
+            Lista de ciclos registrados
         </h5>
 
         <div class="table-responsive">
@@ -301,7 +301,7 @@ $niveles = $conn->query("
                                         <h5 class="modal-title">
 
                                             <i class="bi bi-pencil-square"></i>
-                                            Editar Nivel
+                                            Editar ciclo
 
                                         </h5>
 
@@ -325,7 +325,7 @@ $niveles = $conn->query("
                                         <div class="mb-3">
 
                                             <label class="form-label fw-semibold">
-                                                Nombre del nivel
+                                                Nombre del ciclo
                                             </label>
 
                                             <input type="text"
@@ -387,12 +387,12 @@ $niveles = $conn->query("
                                     </div>
 
                                     <h4 class="fw-bold text-dark mb-3">
-                                        Eliminar Nivel
+                                        Eliminar Ciclo
                                     </h4>
 
                                     <p class="text-muted mb-4">
 
-                                        ¿Seguro que deseas eliminar el nivel
+                                        ¿Seguro que deseas eliminar el ciclo
                                         <strong>
                                             "<?php echo htmlspecialchars($row['nombre']); ?>"
                                         </strong>?

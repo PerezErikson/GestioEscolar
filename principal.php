@@ -217,7 +217,7 @@ $logo_centro = $datos_config['logo'] ?? '';
                 <div>
                     <div class="d-flex align-items-center gap-2 text-dark p-3 my-1 rounded-3 btn btn-light text-start border-0" onclick="toggleMenu('comportamientoMenu')" style="cursor: pointer;">
                         <i class="bi bi-clipboard-data-fill text-secondary"></i>
-                        <span>Comportamiento</span>
+                        <span>Registro anecdótico</span>
                         <i class="bi bi-caret-down-fill ms-auto small"></i>
                     </div>
 
@@ -243,7 +243,7 @@ $logo_centro = $datos_config['logo'] ?? '';
             <?php elseif ($rol == 2): ?>
 
                 <a href="principal.php?seccion=comportamiento" class="d-flex align-items-center gap-2 text-dark text-decoration-none p-3 my-1 rounded-3 btn btn-light text-start border-0">
-                    <i class="bi bi-clipboard-check-fill text-secondary"></i> Comportamiento
+                    <i class="bi bi-clipboard-check-fill text-secondary"></i>Registro anecdótico
                 </a>
                 <a href="principal.php?seccion=reporte_comportamiento" class="d-flex align-items-center gap-2 text-dark text-decoration-none p-3 my-1 rounded-3 btn btn-light text-start border-0">
                     <i class="bi bi-bar-chart-fill text-secondary"></i> Reportes
