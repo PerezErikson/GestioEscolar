@@ -220,7 +220,7 @@ $estudiantes = $conn->query($sql);
                                         </button>
                                     </div>
 
-                                    <form method="POST" action="principal.php<?php echo isset($_GET['modulo']) ? '?modulo=' . htmlspecialchars($_GET['modulo']) : ''; ?>">
+<form method="POST" action="">
                                         <div class="modal-body p-4">
                                             <!-- INPUT OCULTO -->
                                             <input type="hidden" name="numero" value="<?php echo $row['numero']; ?>">
