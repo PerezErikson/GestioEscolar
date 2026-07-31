@@ -125,6 +125,10 @@ $logo_centro = $datos_config['logo'] ?? '';
                     <i class="bi bi-gear-fill text-secondary"></i>
                     <span>Configuración</span>
                 </a>
+                 <a href="principal.php?seccion=administrador" class="d-flex align-items-center gap-2 text-dark text-decoration-none p-3 my-1 rounded-3 btn btn-light text-start border-0">
+                    <i class="bi bi-gear-fill text-secondary"></i>
+                    <span>administrador</span>
+                </a>
 
                 <a href="principal.php?seccion=usuarios" class="d-flex align-items-center gap-2 text-dark text-decoration-none p-3 my-1 rounded-3 btn btn-light text-start border-0">
                     <i class="bi bi-people-fill text-secondary"></i>
@@ -151,7 +155,7 @@ $logo_centro = $datos_config['logo'] ?? '';
                     <div id="academicoMenu" class="ps-3 d-none bg-light rounded-3 mx-1 border border-light-subtle">
                         <a href="principal.php?seccion=ano_escolar" class="d-block text-dark text-decoration-none p-2 small">📅 Año Escolar</a>
                         <a href="principal.php?seccion=competencias" class="d-block text-dark text-decoration-none p-2 small">🎯 Competencias</a>
-                        <a href="principal.php?seccion=niveles" class="d-block text-dark text-decoration-none p-2 small">📘 Niveles</a>
+                        <a href="principal.php?seccion=niveles" class="d-block text-dark text-decoration-none p-2 small">📘 Ciclo</a>
                         <a href="principal.php?seccion=secciones" class="d-block text-dark text-decoration-none p-2 small">🗂️ Secciones</a>
                         <a href="principal.php?seccion=grados" class="d-block text-dark text-decoration-none p-2 small">🎓 Grados</a>
                         <a href="principal.php?seccion=materias" class="d-block text-dark text-decoration-none p-2 small">📖 Materias</a>
@@ -349,6 +353,7 @@ $logo_centro = $datos_config['logo'] ?? '';
 
             if ($seccion === 'configuracion' && $rol == 1) include("Configuracion/configuracion.php");
             elseif ($seccion === 'ano_escolar' && $rol == 1) include("AñoEscolar/agregar.php");
+            elseif ($seccion === 'administrador' && $rol == 1) include("registrar_administrador.php");
             elseif ($seccion === 'competencias' && $rol == 1) include("AñoEscolar/agregar_competencia.php");
             elseif ($seccion === 'niveles' && $rol == 1) include("Niveles/niveles.php");
             elseif ($seccion === 'grados' && $rol == 1) include("Grados/grados.php");

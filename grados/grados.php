@@ -112,7 +112,7 @@ $niveles = $conn->query("SELECT id, nombre FROM niveles ORDER BY id ASC");
             </div>
             <div class="col-md-4">
                 <select name="id_nivel" class="form-select" required>
-                    <option value="">-- Nivel --</option>
+                    <option value="">-- Ciclo --</option>
                     <?php while($n = $niveles->fetch_assoc()) { ?>
                         <option value="<?php echo $n['id']; ?>"><?php echo htmlspecialchars($n['nombre']); ?></option>
                     <?php } ?>
@@ -135,7 +135,7 @@ $niveles = $conn->query("SELECT id, nombre FROM niveles ORDER BY id ASC");
                     <tr>
                         <th>Nombre</th>
                         <th>Sección</th>
-                        <th>Nivel</th>
+                        <th>Ciclo</th>
                         <th class="text-center">Acciones</th>
                     </tr>
                 </thead>
@@ -205,7 +205,7 @@ $niveles = $conn->query("SELECT id, nombre FROM niveles ORDER BY id ASC");
                                   <input type="text" name="nombre" class="form-control" value="<?php echo htmlspecialchars($row['nombre']); ?>" required>
                               </div>
                               <div class="mb-3">
-                                  <label>Sección</label>
+                                  <label>Seccion</label>
                                   <select name="id_seccion" class="form-select" required>
                                       <?php
                                       $secciones2 = $conn->query("SELECT id, nombre FROM secciones ORDER BY id ASC");
@@ -217,7 +217,7 @@ $niveles = $conn->query("SELECT id, nombre FROM niveles ORDER BY id ASC");
                                   </select>
                               </div>
                               <div class="mb-3">
-                                  <label>Nivel</label>
+                                  <label>Ciclos</label>
                                   <select name="id_nivel" class="form-select" required>
                                       <?php
                                       $niveles2 = $conn->query("SELECT id, nombre FROM niveles ORDER BY id ASC");

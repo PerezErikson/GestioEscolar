@@ -73,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['
 
     if ($result['total'] > 0) {
 
-        $mensaje = "La materia \"$nombre\" ya está registrada en ese nivel.";
+        $mensaje = "La materia \"$nombre\" ya está registrada en ese Ciclo.";
         $tipoMensaje = "warning";
 
     } else {
@@ -211,7 +211,7 @@ $materias = $conn->query("
             <div class="col-md-5">
 
                 <label class="form-label fw-semibold">
-                    Nivel
+                   Ciclo
                 </label>
 
                 <select name="id_nivel"
@@ -219,7 +219,7 @@ $materias = $conn->query("
                         required>
 
                     <option value="">
-                        Seleccione un nivel
+                        Seleccione un ciclo
                     </option>
 
                     <?php while($row = $niveles->fetch_assoc()) { ?>
@@ -268,7 +268,7 @@ $materias = $conn->query("
                     <tr>
 
                         <th>Nombre</th>
-                        <th>Nivel</th>
+                        <th>Ciclo</th>
                         <th class="text-center">Acciones</th>
 
                     </tr>
@@ -374,7 +374,7 @@ $materias = $conn->query("
                                         <div class="mb-3">
 
                                             <label class="form-label fw-semibold">
-                                                Nivel
+                                                Ciclos
                                             </label>
 
                                             <select name="id_nivel"

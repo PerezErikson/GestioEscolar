@@ -155,7 +155,7 @@ $estudiantes = $conn->query($sql);
                         <th>Correo</th>
                         <th>Responsable</th>
                         <th>Grado</th>
-                        <th>Nivel</th>
+                        <th>Ciclos</th>
                         <th class="text-center">Acciones</th>
                     </tr>
                 </thead>
@@ -333,7 +333,7 @@ $estudiantes = $conn->query($sql);
 
                                                 <!-- NIVEL -->
                                                 <div class="col-md-6">
-                                                    <label class="form-label fw-semibold">Nivel</label>
+                                                    <label class="form-label fw-semibold">Ciclos</label>
                                                     <select name="nivel" class="form-select rounded-3" required>
                                                         <?php
                                                         $niveles2 = $conn->query("SELECT * FROM niveles ORDER BY nombre ASC");

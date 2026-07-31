@@ -307,7 +307,7 @@ $responsables = $conn->query("
                         required>
 
                     <option value="">
-                        Seleccione
+                      Grado
                     </option>
 
                     <?php while($g = $grados->fetch_assoc()) { ?>
@@ -332,7 +332,7 @@ $responsables = $conn->query("
             <div class="col-md-3">
 
                 <label class="form-label fw-semibold">
-                    Nivel
+                    Ciclos  
                 </label>
 
                 <select name="nivel"
@@ -340,7 +340,7 @@ $responsables = $conn->query("
                         required>
 
                     <option value="">
-                        Seleccione
+                       Ciclos
                     </option>
 
                     <?php while($n = $niveles->fetch_assoc()) { ?>

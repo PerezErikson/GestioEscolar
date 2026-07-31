@@ -174,7 +174,7 @@ $responsables = $conn->query("
                                                         <th>Nombre</th>
                                                         <th>ID</th>
                                                         <th>Grado</th>
-                                                        <th>Nivel</th>
+                                                        <th>Ciclos</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
